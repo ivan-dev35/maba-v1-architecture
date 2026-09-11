@@ -1,3 +1,22 @@
+---
+language:
+- en
+license: mit
+tags:
+- architecture
+- recurrent
+- gated-deltanet
+- linear-attention
+- gqa
+- speculative-decoding
+- mtp
+- muon
+- multi-token-prediction
+- pytorch
+- cpp
+pipeline_tag: text-generation
+---
+
 <div align="center">
 
 <img src="assets/logo.svg" width="96" height="96" alt="maba">
@@ -7,6 +26,7 @@
 101M parameter language model architecture with GDN-2 recurrence and GQA.
 
 [![CI](https://github.com/ivan-dev35/maba-v1-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/ivan-dev35/maba-v1-architecture/actions)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-maba--v1--architecture-ffcc4b)](https://huggingface.co/AndrewThompson1233/maba-v1-architecture)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
 [![C++](https://img.shields.io/badge/C++-17-00599C.svg?logo=c%2B%2B&logoColor=white)](cpp/)
