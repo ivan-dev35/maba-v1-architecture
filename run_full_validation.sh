@@ -9,6 +9,7 @@ python3 tests/verify_params.py
 
 echo "[2/6] Running unit tests..."
 python3 tests/test_components.py
+python3 tests/test_scaling.py
 
 echo "[3/6] Testing MTP speculative generation..."
 python3 tests/test_speculative_generation.py

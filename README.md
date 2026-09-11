@@ -47,6 +47,8 @@
 | **Speculative Horizon** | k=2 (native MTP) | k=1 | k=1 | k=1 |
 | **Native C++ Engine** | Included | None | None | None |
 
+Detailed multi-scale benchmarks (1B, 3B, 7B) against 2026 architectures are provided in [SCALING.md](SCALING.md).
+
 ---
 
 ## Parameter Topology
@@ -64,6 +66,31 @@
 | Final RMSNorm | 640 | 640 | 0.001% |
 | Auxiliary MTP Head (k=2) | (640 + 128) x 640 + 640 | 492,160 | 0.49% |
 | **Total** | | **101,183,744** | **100.0%** |
+
+---
+
+## Scaling (100M - 7B)
+
+The Maba architecture scales from 100M to 1B, 3B, and 7B while maintaining factorized embeddings and a 3:1 ratio between GDN-2 recurrence and GQA attention:
+
+| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B |
+| :--- | :--- | :--- | :--- | :--- |
+| **Total Parameters** | 101.18M | 1,004.7M (1.00B) | 2,977.2M (2.98B) | 7,127.9M (7.13B) |
+| **Core Parameters** | 96.33M (95.21%) | 982.5M (97.79%) | 2,941.3M (98.80%) | 7,071.9M (99.21%) |
+| **Vocab Tax** | 4.31% | 1.74% | 0.90% | 0.52% |
+| **Model Dimension (dim)** | 640 | 2048 | 2816 | 4096 |
+| **Physical Blocks** | 20 (15 GDN + 5 GQA) | 20 (15 GDN + 5 GQA) | 32 (24 GDN + 8 GQA) | 36 (27 GDN + 9 GQA) |
+| **Effective Depth** | 40 layers | 40 layers | 64 layers | 72 layers |
+| **Heads (Q / KV)** | 10 / 2 (d=64) | 16 / 4 (d=128) | 22 / 4 (d=128) | 32 / 8 (d=128) |
+| **FFN Dimension (d_ffn)** | 1728 | 5504 | 7488 | 11008 |
+| **KV-Cache (128k context)** | 156.2 MB | 1,280.0 MB | 2,048.0 MB | 4,608.0 MB |
+
+### KV-Cache Footprint (128k Sequence Length, FP16)
+- **Maba-1B (1,280 MB)** vs Llama-3.2-1B (4,096 MB): **68.8% memory reduction**.
+- **Maba-3B (2,048 MB)** vs Spark-X2.5-4B (11,520 MB): **82.2% memory reduction**.
+- **Maba-7B (4,608 MB)** vs K2-Horizon-7B (18,432 MB): **75.0% memory reduction**.
+
+Complete comparative breakdowns and mathematical scaling formulas are documented in [SCALING.md](SCALING.md).
 
 ---
 
@@ -115,6 +142,7 @@ maba-v1-architecture/
 ├── tests/                         # Automated test suite
 │   ├── verify_params.py           # Exact parameter count audit
 │   ├── test_components.py         # Module unit tests
+│   ├── test_scaling.py            # Multi-scale preset and meta device tests
 │   ├── test_speculative_generation.py # MTP decoding test
 │   └── test_e2e_training.py       # End-to-end training test
 ├── generate_reference.py          # Generates reference weights & activations
@@ -123,6 +151,7 @@ maba-v1-architecture/
 ├── setup.py                       # Setuptools installer
 ├── CONTRIBUTING.md                # Contribution guidelines
 ├── LICENSE                        # MIT License
+├── SCALING.md                     # 100M-7B scaling specs and benchmarks
 └── README.md
 ```
 
@@ -146,9 +175,11 @@ Runs parameter audit, unit tests, speculative generation test, training loop, bu
 
 ### 3. Python CLI
 
-Audit parameter topology:
+Audit parameter topology (100M, 1B, 3B, 7B):
 ```bash
-python3 -m maba.cli params
+python3 -m maba.cli params --scale 100M
+python3 -m maba.cli params --scale 1B
+python3 -m maba.cli params --scale 7B
 ```
 
 Generate text:

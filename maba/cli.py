@@ -36,7 +36,8 @@ def main():
     p_exp.add_argument("--output", type=str, default="maba_weights.bin", help="Output binary file")
 
     # Params
-    sub.add_parser("params", help="Audit model parameter topology")
+    p_par = sub.add_parser("params", help="Audit model parameter topology")
+    p_par.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B"], help="Model scale preset")
 
     args = parser.parse_args()
 
@@ -73,10 +74,15 @@ def main():
         export_bin(model, args.output)
 
     elif args.command == "params":
-        model = Model(Config())
-        counts = model.count_params()
+        cfg = Config.from_preset(args.scale)
+        counts = cfg.compute_param_count()
+        print(f"Maba Architecture: {args.scale.upper()} Topology Audit")
+        print("-" * 42)
         for k, v in counts.items():
-            print(f"{k:<20}: {v:>12,}")
+            if isinstance(v, int):
+                print(f"{k:<20}: {v:>16,}")
+            else:
+                print(f"{k:<20}: {v:>16}")
 
     else:
         parser.print_help()
