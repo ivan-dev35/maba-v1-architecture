@@ -165,6 +165,7 @@ maba-v1-architecture/
 │   ├── test_scaling.py            # Multi-scale preset and meta device tests
 │   ├── test_speculative_generation.py # MTP decoding test
 │   └── test_e2e_training.py       # End-to-end training test
+├── config.json                    # Model configuration and Hub query file
 ├── pyproject.toml                 # Packaging standard
 ├── LICENSE                        # MIT License
 ├── SCALING.md                     # 100M-30B scaling specs and benchmarks
