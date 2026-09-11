@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 630" width="100%" height="630">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 640" width="100%" height="640">
   <defs>
     <linearGradient id="mabaGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#305cfc"/>
@@ -17,46 +17,80 @@
       <stop offset="100%" stop-color="#e1e4ea"/>
     </linearGradient>
   </defs>
-  <rect width="1040" height="630" fill="#ffffff"/>
+  <rect width="1040" height="640" fill="#ffffff"/>
 
-  <!-- Panel 1: Computation Core Ratio (30B / 27B Flagship Tier) -->
+  <!-- Panel 1: Core Computation Weight Fraction (%) -->
   <g transform="translate(35, 25)">
-    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Core Ratio (27B - 30B Tier)</text>
-    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">% Total Weights in Computation Core</text>
+    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Core Parameter Ratio (%)</text>
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Active Computation Core vs Embeddings</text>
     
-    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">100</text>
-    <text x="24" y="107.2" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">75</text>
-    <text x="24" y="141.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">50</text>
-    <text x="24" y="174.7" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">25</text>
-    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0</text>
+    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">100%</text>
+    <text x="24" y="107.2" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">75%</text>
+    <text x="24" y="141.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">50%</text>
+    <text x="24" y="174.7" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">25%</text>
+    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0%</text>
     <line x1="30" y1="205" x2="210" y2="205" stroke="#e5e7eb" stroke-width="1"/>
 
-    <!-- Bar 1: Maba-30B (99.6%) -->
-    <path d="M 42.0,205.0 L 42.0,75.0 Q 42.0,71.0 46.0,71.0 L 70.0,71.0 Q 74.0,71.0 74.0,75.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
-    <text x="58.0" y="65.0" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">99.6%</text>
+    <!-- Bar 1: Maba-1B (97.8%) -->
+    <path d="M 42.0,205.0 L 42.0,76.0 Q 42.0,72.0 46.0,72.0 L 70.0,72.0 Q 74.0,72.0 74.0,76.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="58.0" y="66.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">97.8%</text>
 
-    <!-- Bar 2: Muse-Glimmer-30B (90.9%) -->
-    <path d="M 86.0,205.0 L 86.0,87.0 Q 86.0,83.0 90.0,83.0 L 114.0,83.0 Q 118.0,83.0 118.0,87.0 L 118.0,205.0 Z" fill="url(#museGrad)"/>
-    <text x="102.0" y="77.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">90.9%</text>
+    <!-- Bar 2: Qwen3.5-2B (74.6%) -->
+    <path d="M 86.0,205.0 L 86.0,107.0 Q 86.0,103.0 90.0,103.0 L 114.0,103.0 Q 118.0,103.0 118.0,107.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
+    <text x="102.0" y="97.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">74.6%</text>
 
-    <!-- Bar 3: Qwen3.8-27B (90.3%) -->
-    <path d="M 130.0,205.0 L 130.0,88.0 Q 130.0,84.0 134.0,84.0 L 158.0,84.0 Q 162.0,84.0 162.0,88.0 L 162.0,205.0 Z" fill="url(#qwenGrad)"/>
-    <text x="146.0" y="78.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">90.3%</text>
+    <!-- Bar 3: Maba-30B (99.6%) -->
+    <path d="M 130.0,205.0 L 130.0,74.0 Q 130.0,70.0 134.0,70.0 L 158.0,70.0 Q 162.0,70.0 162.0,74.0 L 162.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="146.0" y="64.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">99.6%</text>
 
-    <!-- Bar 4: Gemma4-31B (88.4%) -->
-    <path d="M 174.0,205.0 L 174.0,91.0 Q 174.0,87.0 178.0,87.0 L 202.0,87.0 Q 206.0,87.0 206.0,91.0 L 206.0,205.0 Z" fill="url(#otherGrad)"/>
-    <text x="190.0" y="81.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">88.4%</text>
+    <!-- Bar 4: Muse-30B (90.9%) -->
+    <path d="M 174.0,205.0 L 174.0,87.0 Q 174.0,83.0 178.0,83.0 L 202.0,83.0 Q 206.0,83.0 206.0,87.0 L 206.0,205.0 Z" fill="url(#museGrad)"/>
+    <text x="190.0" y="77.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">90.9%</text>
 
-    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-30B</text>
-    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Muse-30B</text>
-    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3.8</text>
-    <text x="190.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Gemma4</text>
+    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-1B</text>
+    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3.5-2B</text>
+    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-30B</text>
+    <text x="190.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Muse-30B</text>
   </g>
 
-  <!-- Panel 2: KV-Cache Memory at 131k Context (GB) -->
+  <!-- Panel 2: Vocab Parameter Tax (%) -->
   <g transform="translate(295, 25)">
+    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Vocab Parameter Tax (%)</text>
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">% Weights Consumed by Static Tables</text>
+    
+    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">35%</text>
+    <text x="24" y="111.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">25%</text>
+    <text x="24" y="149.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">15%</text>
+    <text x="24" y="187.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">5%</text>
+    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0%</text>
+    <line x1="30" y1="205" x2="210" y2="205" stroke="#e5e7eb" stroke-width="1"/>
+
+    <!-- Bar 1: Qwen3.5-0.8B (31.8%) -->
+    <path d="M 42.0,205.0 L 42.0,86.0 Q 42.0,82.0 46.0,82.0 L 70.0,82.0 Q 74.0,82.0 74.0,86.0 L 74.0,205.0 Z" fill="url(#qwenGrad)"/>
+    <text x="58.0" y="76.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">31.8%</text>
+
+    <!-- Bar 2: Qwen3.5-2B (25.4%) -->
+    <path d="M 86.0,205.0 L 86.0,110.0 Q 86.0,106.0 90.0,106.0 L 114.0,106.0 Q 118.0,106.0 118.0,110.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
+    <text x="102.0" y="100.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">25.4%</text>
+
+    <!-- Bar 3: Maba-1B (1.74%) -->
+    <path d="M 130.0,205.0 L 130.0,198.0 Q 130.0,194.0 134.0,194.0 L 158.0,194.0 Q 162.0,194.0 162.0,198.0 L 162.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="146.0" y="188.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">1.74%</text>
+
+    <!-- Bar 4: Maba-30B (0.21%) -->
+    <path d="M 174.0,205.0 L 174.0,202.0 Q 174.0,198.0 178.0,198.0 L 202.0,198.0 Q 206.0,198.0 206.0,202.0 L 206.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="190.0" y="192.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">0.21%</text>
+
+    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Q3.5-0.8B</text>
+    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Q3.5-2B</text>
+    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-1B</text>
+    <text x="190.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-30B</text>
+  </g>
+
+  <!-- Panel 3: KV-Cache Memory at 131k Context (GB) -->
+  <g transform="translate(555, 25)">
     <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">KV Cache Footprint (131k Context)</text>
-    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Gigabytes FP16 per Request (Lower is Better)</text>
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Gigabytes FP16 per Stream (Lower is Better)</text>
     
     <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">20GB</text>
     <text x="24" y="107.2" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">15GB</text>
@@ -65,162 +99,131 @@
     <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0GB</text>
     <line x1="30" y1="205" x2="210" y2="205" stroke="#e5e7eb" stroke-width="1"/>
 
-    <!-- Bar 1: Maba-7B (4.6 GB) -->
-    <path d="M 42.0,205.0 L 42.0,174.0 Q 42.0,170.0 46.0,170.0 L 70.0,170.0 Q 74.0,170.0 74.0,174.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
-    <text x="58.0" y="164.0" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">4.6 GB</text>
+    <!-- Bar 1: Maba-1B (1.28 GB) -->
+    <path d="M 42.0,205.0 L 42.0,196.0 Q 42.0,192.0 46.0,192.0 L 70.0,192.0 Q 74.0,192.0 74.0,196.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="58.0" y="186.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">1.3 GB</text>
 
-    <!-- Bar 2: Qwen3-8B (19.3 GB) -->
-    <path d="M 86.0,205.0 L 86.0,75.0 Q 86.0,71.0 90.0,71.0 L 114.0,71.0 Q 118.0,71.0 118.0,75.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
-    <text x="102.0" y="65.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">19.3 GB</text>
+    <!-- Bar 2: Qwen3.5-2B (1.54 GB) -->
+    <path d="M 86.0,205.0 L 86.0,194.0 Q 86.0,190.0 90.0,190.0 L 114.0,190.0 Q 118.0,190.0 118.0,194.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
+    <text x="102.0" y="184.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">1.5 GB</text>
 
-    <!-- Bar 3: Maba-30B (3.5 GB) -->
+    <!-- Bar 3: Maba-30B (3.49 GB) -->
     <path d="M 130.0,205.0 L 130.0,181.0 Q 130.0,177.0 134.0,177.0 L 158.0,177.0 Q 162.0,177.0 162.0,181.0 L 162.0,205.0 Z" fill="url(#mabaGrad)"/>
-    <text x="146.0" y="171.0" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">3.5 GB</text>
+    <text x="146.0" y="171.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">3.5 GB</text>
 
-    <!-- Bar 4: Qwen3.8-27B (8.6 GB) -->
+    <!-- Bar 4: Qwen3.8-27B (8.59 GB) -->
     <path d="M 174.0,205.0 L 174.0,147.0 Q 174.0,143.0 178.0,143.0 L 202.0,143.0 Q 206.0,143.0 206.0,147.0 L 206.0,205.0 Z" fill="url(#qwenGrad)"/>
     <text x="190.0" y="137.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">8.6 GB</text>
 
-    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-7B</text>
-    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3-8B</text>
+    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-1B</text>
+    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Q3.5-2B</text>
     <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba-30B</text>
     <text x="190.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3.8-27B</text>
   </g>
 
-  <!-- Panel 3: Vocab Parameter Tax Across Tiers -->
-  <g transform="translate(555, 25)">
-    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Vocab Parameter Tax (%)</text>
-    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">% Parameters Spent on Token Tables</text>
-    
-    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">30%</text>
-    <text x="24" y="117.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">20%</text>
-    <text x="24" y="161.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">10%</text>
-    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0%</text>
-    <line x1="30" y1="205" x2="210" y2="205" stroke="#e5e7eb" stroke-width="1"/>
-
-    <!-- Bar 1: Supra2-100M (25.0%) -->
-    <path d="M 42.0,205.0 L 42.0,95.0 Q 42.0,91.0 46.0,91.0 L 70.0,91.0 Q 74.0,91.0 74.0,95.0 L 74.0,205.0 Z" fill="url(#qwenGrad)"/>
-    <text x="58.0" y="85.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">25.0%</text>
-
-    <!-- Bar 2: MiniCPM5-1B (23.9%) -->
-    <path d="M 86.0,205.0 L 86.0,100.0 Q 86.0,96.0 90.0,96.0 L 114.0,96.0 Q 118.0,96.0 118.0,100.0 L 118.0,205.0 Z" fill="url(#otherGrad)"/>
-    <text x="102.0" y="90.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">23.9%</text>
-
-    <!-- Bar 3: Qwen3-8B (15.0%) -->
-    <path d="M 130.0,205.0 L 130.0,139.0 Q 130.0,135.0 134.0,135.0 L 158.0,135.0 Q 162.0,135.0 162.0,139.0 L 162.0,205.0 Z" fill="url(#qwenGrad)"/>
-    <text x="146.0" y="129.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">15.0%</text>
-
-    <!-- Bar 4: Maba (100M-30B: 4.3% -> 0.2%) -->
-    <path d="M 174.0,205.0 L 174.0,195.0 Q 174.0,191.0 178.0,191.0 L 202.0,191.0 Q 206.0,191.0 206.0,195.0 L 206.0,205.0 Z" fill="url(#mabaGrad)"/>
-    <text x="190.0" y="185.0" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">0.2% - 4.3%</text>
-
-    <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Supra2</text>
-    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">MiniCPM5</text>
-    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3-8B</text>
-    <text x="190.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba Series</text>
-  </g>
-
-  <!-- Panel 4: Speculative Decoding Horizon & Efficiency -->
+  <!-- Panel 4: Speculative Decoding & Architecture Layout -->
   <g transform="translate(815, 25)">
-    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Speculative Horizon (k)</text>
-    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Tokens Proposed per Forward Step</text>
+    <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#111827">Architecture Layout</text>
+    <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">GDN Recurrence vs GQA Ratio</text>
     
-    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">k=2</text>
-    <text x="24" y="141.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">k=1</text>
-    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0</text>
+    <text x="24" y="73.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">100%</text>
+    <text x="24" y="107.2" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">75%</text>
+    <text x="24" y="141.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">50%</text>
+    <text x="24" y="174.7" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">25%</text>
+    <text x="24" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0%</text>
     <line x1="30" y1="205" x2="195" y2="205" stroke="#e5e7eb" stroke-width="1"/>
 
-    <!-- Bar 1: Maba (Native MTP k=2) -->
-    <path d="M 42.0,205.0 L 42.0,75.0 Q 42.0,71.0 46.0,71.0 L 70.0,71.0 Q 74.0,71.0 74.0,75.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
-    <text x="58.0" y="65.0" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">k=2 (Built-in)</text>
+    <!-- Bar 1: Maba (75% GDN-2) -->
+    <path d="M 42.0,205.0 L 42.0,107.0 Q 42.0,103.0 46.0,103.0 L 70.0,103.0 Q 74.0,103.0 74.0,107.0 L 74.0,205.0 Z" fill="url(#mabaGrad)"/>
+    <text x="58.0" y="97.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">3:1 (75%)</text>
 
-    <!-- Bar 2: Qwen3.8-27B (MTP k=2) -->
-    <path d="M 86.0,205.0 L 86.0,75.0 Q 86.0,71.0 90.0,71.0 L 114.0,71.0 Q 118.0,71.0 118.0,75.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
-    <text x="102.0" y="65.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">k=2 (MTP)</text>
+    <!-- Bar 2: Qwen3.5 (75% GDN) -->
+    <path d="M 86.0,205.0 L 86.0,107.0 Q 86.0,103.0 90.0,103.0 L 114.0,103.0 Q 118.0,103.0 118.0,107.0 L 118.0,205.0 Z" fill="url(#qwenGrad)"/>
+    <text x="102.0" y="97.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">3:1 (75%)</text>
 
-    <!-- Bar 3: Standard Models (k=1) -->
-    <path d="M 130.0,205.0 L 130.0,141.0 Q 130.0,137.0 134.0,137.0 L 158.0,137.0 Q 162.0,137.0 162.0,141.0 L 162.0,205.0 Z" fill="url(#otherGrad)"/>
-    <text x="146.0" y="131.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">k=1</text>
+    <!-- Bar 3: Dense Transformer (0% GDN) -->
+    <path d="M 130.0,205.0 L 130.0,205.0 Z" fill="none"/>
+    <text x="146.0" y="195.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">0% (Full)</text>
 
     <text x="58.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="600" fill="#305cfc">Maba</text>
-    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3.8</text>
-    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Standard</text>
+    <text x="102.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen3.5</text>
+    <text x="146.0" y="222" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Dense LLM</text>
   </g>
 
   <!-- Bottom Detailed Architectural Topology Comparison Table -->
   <g transform="translate(35, 270)">
-    <rect width="970" height="330" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <rect width="970" height="340" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
     
     <!-- Table Header -->
     <rect x="0" y="0" width="970" height="40" rx="8" fill="#f1f5f9"/>
     <text x="20" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Model Specification</text>
-    <text x="220" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Total / Core Params</text>
-    <text x="390" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Linear:Attn Ratio</text>
+    <text x="220" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Total / Core Weights</text>
+    <text x="390" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Linear:Attention</text>
     <text x="550" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Vocab Tax</text>
     <text x="680" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">KV Cache (131k)</text>
-    <text x="840" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Speculative Horizon</text>
+    <text x="840" y="25" font-family="sans-serif" font-size="12" font-weight="700" fill="#334155">Effective Depth</text>
     <line x1="0" y1="40" x2="970" y2="40" stroke="#cbd5e1" stroke-width="1"/>
 
     <!-- Row 1: Maba-30B -->
     <text x="20" y="72" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">Maba-30B (2026)</text>
     <text x="220" y="72" font-family="sans-serif" font-size="12" fill="#0f172a">29.04B / 28.93B (99.6%)</text>
-    <text x="390" y="72" font-family="sans-serif" font-size="12" fill="#0f172a">75% GDN-2 / 25% GQA</text>
-    <text x="550" y="72" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">0.21%</text>
+    <text x="390" y="72" font-family="sans-serif" font-size="12" fill="#0f172a">3:1 (39 GDN + 13 GQA)</text>
+    <text x="550" y="72" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">0.21% (Factorized)</text>
     <text x="680" y="72" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">3.5 GB</text>
-    <text x="840" y="72" font-family="sans-serif" font-size="12" fill="#0f172a">k=2 (Built-in MTP)</text>
+    <text x="840" y="72" font-family="sans-serif" font-size="12" fill="#0f172a">104 layers (2-pass)</text>
     <line x1="20" y1="87" x2="950" y2="87" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- Row 2: Muse-Glimmer-30B -->
     <text x="20" y="112" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">Muse-Glimmer-30B (Meta 2026)</text>
     <text x="220" y="112" font-family="sans-serif" font-size="12" fill="#475569">29.6B / 26.9B (90.9%)</text>
-    <text x="390" y="112" font-family="sans-serif" font-size="12" fill="#475569">75% Local 2k / 25% Global</text>
-    <text x="550" y="112" font-family="sans-serif" font-size="12" fill="#dc2626">9.1%</text>
+    <text x="390" y="112" font-family="sans-serif" font-size="12" fill="#475569">3:1 (39 Local 2k + 13 Global)</text>
+    <text x="550" y="112" font-family="sans-serif" font-size="12" fill="#dc2626">9.1% (Untied 202k)</text>
     <text x="680" y="112" font-family="sans-serif" font-size="12" fill="#475569">4.5 GB (+DFlash)</text>
-    <text x="840" y="112" font-family="sans-serif" font-size="12" fill="#475569">DFlash 5-layer drafter</text>
+    <text x="840" y="112" font-family="sans-serif" font-size="12" fill="#475569">52 layers</text>
     <line x1="20" y1="127" x2="950" y2="127" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- Row 3: Qwen3.8-27B -->
     <text x="20" y="152" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">Qwen3.8-27B (2026)</text>
     <text x="220" y="152" font-family="sans-serif" font-size="12" fill="#475569">27.2B / 24.6B (90.3%)</text>
-    <text x="390" y="152" font-family="sans-serif" font-size="12" fill="#475569">75% Linear / 25% Full</text>
-    <text x="550" y="152" font-family="sans-serif" font-size="12" fill="#dc2626">9.7%</text>
+    <text x="390" y="152" font-family="sans-serif" font-size="12" fill="#475569">3:1 (48 Linear + 16 Full)</text>
+    <text x="550" y="152" font-family="sans-serif" font-size="12" fill="#dc2626">9.7% (Untied 248k)</text>
     <text x="680" y="152" font-family="sans-serif" font-size="12" fill="#475569">8.6 GB</text>
-    <text x="840" y="152" font-family="sans-serif" font-size="12" fill="#475569">k=2 (MTP Layer)</text>
+    <text x="840" y="152" font-family="sans-serif" font-size="12" fill="#475569">64 layers</text>
     <line x1="20" y1="167" x2="950" y2="167" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- Row 4: Maba-7B -->
     <text x="20" y="192" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">Maba-7B (2026)</text>
     <text x="220" y="192" font-family="sans-serif" font-size="12" fill="#0f172a">7.13B / 7.07B (99.2%)</text>
-    <text x="390" y="192" font-family="sans-serif" font-size="12" fill="#0f172a">75% GDN-2 / 25% GQA</text>
-    <text x="550" y="192" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">0.52%</text>
+    <text x="390" y="192" font-family="sans-serif" font-size="12" fill="#0f172a">3:1 (27 GDN + 9 GQA)</text>
+    <text x="550" y="192" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">0.52% (Factorized)</text>
     <text x="680" y="192" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">4.6 GB</text>
-    <text x="840" y="192" font-family="sans-serif" font-size="12" fill="#0f172a">k=2 (Built-in MTP)</text>
+    <text x="840" y="192" font-family="sans-serif" font-size="12" fill="#0f172a">72 layers (2-pass)</text>
     <line x1="20" y1="207" x2="950" y2="207" stroke="#e2e8f0" stroke-width="1"/>
 
-    <!-- Row 5: Qwen3-8B -->
-    <text x="20" y="232" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">Qwen3-8B (2026)</text>
-    <text x="220" y="232" font-family="sans-serif" font-size="12" fill="#475569">8.28B / 7.03B (85.0%)</text>
-    <text x="390" y="232" font-family="sans-serif" font-size="12" fill="#475569">100% Full Attention</text>
-    <text x="550" y="232" font-family="sans-serif" font-size="12" fill="#dc2626">15.0%</text>
-    <text x="680" y="232" font-family="sans-serif" font-size="12" fill="#475569">19.3 GB</text>
-    <text x="840" y="232" font-family="sans-serif" font-size="12" fill="#475569">k=1</text>
+    <!-- Row 5: Qwen3.5-2B -->
+    <text x="20" y="232" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">Qwen3.5-2B (Alibaba 2026)</text>
+    <text x="220" y="232" font-family="sans-serif" font-size="12" fill="#475569">2.00B / 1.49B (74.6%)</text>
+    <text x="390" y="232" font-family="sans-serif" font-size="12" fill="#475569">3:1 (18 GDN + 6 GQA)</text>
+    <text x="550" y="232" font-family="sans-serif" font-size="12" fill="#dc2626">25.4% (Tied 248k)</text>
+    <text x="680" y="232" font-family="sans-serif" font-size="12" fill="#475569">1.5 GB</text>
+    <text x="840" y="232" font-family="sans-serif" font-size="12" fill="#475569">24 layers</text>
     <line x1="20" y1="247" x2="950" y2="247" stroke="#e2e8f0" stroke-width="1"/>
 
     <!-- Row 6: Maba-1B -->
     <text x="20" y="272" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">Maba-1B (2026)</text>
     <text x="220" y="272" font-family="sans-serif" font-size="12" fill="#0f172a">1.00B / 982.5M (97.8%)</text>
-    <text x="390" y="272" font-family="sans-serif" font-size="12" fill="#0f172a">75% GDN-2 / 25% GQA</text>
-    <text x="550" y="272" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">1.74%</text>
+    <text x="390" y="272" font-family="sans-serif" font-size="12" fill="#0f172a">3:1 (15 GDN + 5 GQA)</text>
+    <text x="550" y="272" font-family="sans-serif" font-size="12" font-weight="600" fill="#16a34a">1.74% (Factorized)</text>
     <text x="680" y="272" font-family="sans-serif" font-size="12" font-weight="700" fill="#2548dc">1.3 GB</text>
-    <text x="840" y="272" font-family="sans-serif" font-size="12" fill="#0f172a">k=2 (Built-in MTP)</text>
+    <text x="840" y="272" font-family="sans-serif" font-size="12" fill="#0f172a">40 layers (2-pass)</text>
     <line x1="20" y1="287" x2="950" y2="287" stroke="#e2e8f0" stroke-width="1"/>
 
-    <!-- Row 7: K2-Horizon-0.9B -->
-    <text x="20" y="312" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">K2-Horizon-0.9B (2026)</text>
-    <text x="220" y="312" font-family="sans-serif" font-size="12" fill="#475569">920.8M / 822.1M (89.3%)</text>
-    <text x="390" y="312" font-family="sans-serif" font-size="12" fill="#475569">100% Full Attention</text>
-    <text x="550" y="312" font-family="sans-serif" font-size="12" fill="#dc2626">10.7%</text>
-    <text x="680" y="312" font-family="sans-serif" font-size="12" fill="#475569">5.4 GB</text>
-    <text x="840" y="312" font-family="sans-serif" font-size="12" fill="#475569">k=1</text>
+    <!-- Row 7: Qwen3.5-0.8B -->
+    <text x="20" y="312" font-family="sans-serif" font-size="12" font-weight="600" fill="#0f172a">Qwen3.5-0.8B (Alibaba 2026)</text>
+    <text x="220" y="312" font-family="sans-serif" font-size="12" fill="#475569">800M / 546M (68.2%)</text>
+    <text x="390" y="312" font-family="sans-serif" font-size="12" fill="#475569">3:1 (18 GDN + 6 GQA)</text>
+    <text x="550" y="312" font-family="sans-serif" font-size="12" fill="#dc2626">31.8% (Tied 248k)</text>
+    <text x="680" y="312" font-family="sans-serif" font-size="12" fill="#475569">768 MB</text>
+    <text x="840" y="312" font-family="sans-serif" font-size="12" fill="#475569">24 layers</text>
   </g>
 </svg>

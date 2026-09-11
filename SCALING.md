@@ -1,6 +1,6 @@
 # Maba Architecture: Scaling and 2026 Architectural Comparison
 
-Technical specification and architectural comparison for scaling the Maba architecture from 100M to 1B, 3B, 7B, and 30B parameters against 2026 frontier and edge architectures.
+Technical specification and architectural comparison for scaling the Maba architecture from 100M to 1B, 3B, 7B, and 30B parameters against 2026 frontier and edge architectures (Qwen3.5, Muse-Glimmer-30B, Gemma4).
 
 ---
 
@@ -36,74 +36,53 @@ Technical specification and architectural comparison for scaling the Maba archit
 
 ## 3. Comparison Against 2026 Architectures
 
+### Architectural Convergence: Maba vs Qwen3.5 Series (Alibaba 2026)
+
+Both Maba and the Qwen3.5 foundation series converged on the identical 3:1 macro layout:
+`3 x (Gated DeltaNet -> SwiGLU) -> 1 x (GQA Attention -> SwiGLU)`.
+
+The decisive divergence lies in embedding topology and parameter allocation:
+
+| Feature | Maba-1B (2026) | Qwen3.5-0.8B (2026) | Qwen3.5-2B (2026) | Maba-3B (2026) | Qwen3.5-4B (2026) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Backbone** | GDN-2 + GQA (3:1) | GDN + Attention (3:1) | GDN + Attention (3:1) | GDN-2 + GQA (3:1) | GDN + Attention (3:1) |
+| **Total Parameters** | 1,004.7M (1.00B) | 800.0M (0.80B) | 2,000.0M (2.00B) | 2,977.2M (2.98B) | 4,000.0M (4.00B) |
+| **Core Parameters** | 982.5M (97.79%) | 545.7M (68.21%) | 1,491.4M (74.57%) | 2,941.3M (98.80%) | 3,364.3M (84.11%) |
+| **Embedding Parameters** | 17.5M (Rank 256) | 254.3M (Monolithic) | 508.6M (Monolithic) | 26.8M (Rank 384) | 635.7M (Monolithic) |
+| **Vocab Parameter Tax** | **1.74%** | **31.79%** | **25.43%** | **0.90%** | **15.89%** |
+| **Vocabulary Size** | 64,256 | 248,320 | 248,320 | 64,256 | 248,320 |
+| **Physical Layers** | 20 (15 GDN + 5 GQA) | 24 (18 GDN + 6 GQA) | 24 (18 GDN + 6 GQA) | 32 (24 GDN + 8 GQA) | 32 (24 GDN + 8 GQA) |
+| **Effective Depth** | 40 layers (2-pass) | 24 layers | 24 layers | 64 layers (2-pass) | 32 layers |
+| **KV Cache (131k FP16)** | **1,280.0 MB** | 768.0 MB | 1,536.0 MB | **2,048.0 MB** | 4,096.0 MB |
+| **Speculative Decoding** | Built-in MTP (k=2) | Built-in MTP | Built-in MTP | Built-in MTP (k=2) | Built-in MTP |
+
 ### Agentic Tier (27B - 31B)
 
 | Feature | Maba-30B (2026) | Muse-Glimmer-30B (Meta 2026) | Qwen3.8-27B (2026) | Gemma4-31B (Google 2026) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backbone Architecture** | GDN-2 Linear Recurrence + GQA | Dense Transformer + Local Window | Linear Attention + Full Attention | Dense Transformer |
+| **Backbone Architecture** | GDN-2 Recurrence + GQA | Dense Transformer + Local Window | Linear Attention + Full Attention | Dense Transformer |
 | **Total Parameters** | 29.04B | 29.6B (incl. 1.8B ViT-G) | 27.2B | 30.7B |
-| **Core Computation Parameters** | 28.93B (99.62%) | 26.9B (90.9%) | 24.6B (90.3%) | 27.1B (88.4%) |
-| **Vocab Parameter Tax** | 0.21% (Rank-768 Factorized) | 9.1% (Untied 202k Vocab) | 9.7% (Untied 248k Vocab) | 11.6% (Direct 256k Vocab) |
+| **Core Computation Parameters** | 28.93B (99.62%) | 26.9B (90.88%) | 24.6B (90.30%) | 27.1B (88.35%) |
+| **Vocab Parameter Tax** | 0.21% (Rank 768) | 9.12% (Untied 202k) | 9.70% (Untied 248k) | 11.65% (Direct 256k) |
 | **Layer Mixture** | 75% GDN-2 + 25% GQA | 75% Local Window (2k) + 25% Global | 75% Linear Attn + 25% Full Attn | 100% Full Attention |
 | **Attention Layers With State Growth** | 13 layers (25%) | 13 global + 39 local window | 16 layers (25%) | 54 layers (100%) |
 | **KV Cache Footprint (131k FP16)** | 3.5 GB | 4.5 GB (1.8 GB + 2.7 GB drafter) | 8.6 GB | 28.3 GB |
-| **Speculative Decoding Mechanism** | Built-in MTP (k=2, 0 extra VRAM) | DFlash block-diffusion (5-layer companion) | MTP auxiliary layer (k=2) | None / external drafter |
+| **Speculative Decoding Mechanism** | Built-in MTP (k=2, 0 extra VRAM) | DFlash block-diffusion (5-layer companion) | MTP auxiliary layer (k=2) | External drafter / k=1 |
 | **Effective Layer Depth** | 104 layers (2-pass block) | 52 layers | 64 layers | 54 layers |
 
-### Mid Tier (7B - 8B)
+### Mid Tier (7B - 9B)
 
-| Feature | Maba-7B (2026) | Qwen3-8B (2026) | IFM/K2-Horizon-7B (2026) |
-| :--- | :--- | :--- | :--- |
-| **Backbone Architecture** | GDN-2 Linear Recurrence + GQA | Qwen3 Dense Transformer | Dense Transformer |
-| **Total Parameters** | 7,127.9M (7.13B) | 8,280.4M (8.28B) | 7,974.7M (7.97B) |
-| **Core Computation Parameters** | 7,071.9M (99.21%) | 7,035.8M (84.97%) | 6,948.1M (87.13%) |
-| **Vocab Parameter Tax** | 0.52% (Rank-512 Factorized) | 15.03% (Untied 152k Vocab) | 12.87% (Tied 250k Vocab) |
-| **Layer Mixture** | 75% GDN-2 + 25% GQA | 100% Full Attention | 100% Full Attention |
-| **KV Cache Layers** | 9 layers (25%) | 36 layers (100%) | 36 layers (100%) |
-| **KV Cache Footprint (131k FP16)** | 4,608.0 MB (4.6 GB) | 19,327.4 MB (19.3 GB) | 18,432.0 MB (18.4 GB) |
-| **KV Cache Reduction vs Competitor** | Reference | -76.2% memory vs Qwen3-8B | -75.0% memory vs K2-Horizon-7B |
-| **Speculative Decoding** | Built-in MTP (k=2) | k=1 | k=1 |
-| **Effective Layer Depth** | 72 layers | 36 layers | 36 layers |
-
-### Edge Tier (1.7B - 4B)
-
-| Feature | Maba-3B (2026) | openbmb/MiniCPM5-2B (2026) | XHToken/Spark-X2.5-4B (2026) |
-| :--- | :--- | :--- | :--- |
-| **Backbone Architecture** | GDN-2 Linear Recurrence + GQA | Dense Transformer | Spark Transformer |
-| **Total Parameters** | 2,977.2M (2.98B) | 2,246.5M (2.25B) | 3,758.1M (3.76B) |
-| **Core Computation Parameters** | 2,941.3M (98.80%) | 1,979.4M (88.11%) | 3,422.5M (91.07%) |
-| **Vocab Parameter Tax** | 0.90% (Rank-384 Factorized) | 11.89% (130k Vocab) | 8.93% (131k Vocab) |
-| **KV Cache Layers** | 8 layers (25%) | 42 layers (100%) | 36 layers (100%) |
-| **KV Cache Footprint (131k FP16)** | 2,048.0 MB (2.0 GB) | 5,376.0 MB (5.4 GB) | 11,520.0 MB (11.5 GB) |
-| **KV Cache Reduction** | Reference | -61.9% memory vs MiniCPM5-2B | -82.2% memory vs Spark-4B |
-| **Speculative Decoding** | Built-in MTP (k=2) | k=1 | k=1 |
-| **Effective Layer Depth** | 64 layers | 42 layers | 36 layers |
-
-### Compact Tier (0.8B - 1B)
-
-| Feature | Maba-1B (2026) | IFM/K2-Horizon-0.9B (2026) | openbmb/MiniCPM5-1B (2026) |
-| :--- | :--- | :--- | :--- |
-| **Backbone Architecture** | GDN-2 Linear Recurrence + GQA | Dense Transformer | Dense Transformer |
-| **Total Parameters** | 1,004.7M (1.00B) | 920.8M (0.92B) | 840.4M (0.84B) |
-| **Core Computation Parameters** | 982.5M (97.79%) | 822.1M (89.28%) | 639.8M (76.13%) |
-| **Vocab Parameter Tax** | 1.74% (Rank-256 Factorized) | 10.72% (64k Vocab) | 23.87% (130k Vocab) |
-| **KV Cache Layers** | 5 layers (25%) | 28 layers (100%) | 24 layers (100%) |
-| **KV Cache Footprint (131k FP16)** | 1,280.0 MB (1.3 GB) | 5,376.0 MB (5.4 GB) | 2,304.0 MB (2.3 GB) |
-| **KV Cache Reduction** | Reference | -76.2% memory vs K2-Horizon-0.9B | -44.4% memory vs MiniCPM5-1B |
-| **Speculative Decoding** | Built-in MTP (k=2) | k=1 | k=1 |
-| **Effective Layer Depth** | 40 layers | 28 layers | 24 layers |
-
-### Sub-150M Tier
-
-| Feature | Maba-100M (2026) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
+| Feature | Maba-7B (2026) | Qwen3.5-9B (2026) | Qwen3-8B (2026) | IFM/K2-Horizon-7B (2026) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backbone** | Maba (GDN-2 + GQA) | Qwen3 (Transformer) | Transformer | Transformer |
-| **Total Parameters** | 101.18M | 100.68M | 135.0M | 125.0M |
-| **Core Parameters** | 96.33M (95.21%) | 75.52M (75.01%) | 106.7M (79.04%) | 106.6M (85.28%) |
-| **Vocab Tax** | 4.31% | 24.99% | 20.96% | 14.72% |
-| **KV Cache Layers** | 5 layers (25%) | 12 layers (100%) | 30 layers (100%) | 30 layers (100%) |
-| **Effective Depth** | 40 layers | 12 layers | 30 layers | 30 layers |
-| **Speculative Horizon** | k=2 (Built-in MTP) | k=1 | k=1 | k=1 |
+| **Backbone Architecture** | GDN-2 Recurrence + GQA | GDN + GQA Hybrid (3:1) | Dense Transformer | Dense Transformer |
+| **Total Parameters** | 7,127.9M (7.13B) | 8,800.0M (8.80B) | 8,280.4M (8.28B) | 7,974.7M (7.97B) |
+| **Core Computation Parameters** | 7,071.9M (99.21%) | 7,782.9M (88.44%) | 7,035.8M (84.97%) | 6,948.1M (87.13%) |
+| **Vocab Parameter Tax** | 0.52% (Rank 512) | 11.56% (248k Vocab) | 15.03% (Untied 152k Vocab) | 12.87% (Tied 250k Vocab) |
+| **Layer Mixture** | 75% GDN-2 + 25% GQA | 75% GDN + 25% GQA | 100% Full Attention | 100% Full Attention |
+| **KV Cache Layers** | 9 layers (25%) | 8 layers (25%) | 36 layers (100%) | 36 layers (100%) |
+| **KV Cache Footprint (131k FP16)** | 4,608.0 MB (4.6 GB) | 4,096.0 MB (4.1 GB) | 19,327.4 MB (19.3 GB) | 18,432.0 MB (18.4 GB) |
+| **Speculative Decoding** | Built-in MTP (k=2) | Built-in MTP | k=1 | k=1 |
+| **Effective Layer Depth** | 72 layers | 32 layers | 36 layers | 36 layers |
 
 ---
 
@@ -129,6 +108,7 @@ $$\mathrm{KV~Cache~Memory} = 4 \times N_{\mathrm{gqa}} \times n_{\mathrm{kv}} \t
 | 3B Tier | MiniCPM5-2B | 1,344.0 MB | 2,688.0 MB | 5,376.0 MB (5.4 GB) | -61.9% |
 | 3B Tier | Spark-X2.5-4B | 2,880.0 MB | 5,760.0 MB | 11,520.0 MB (11.5 GB) | -82.2% |
 | **1B Tier** | **Maba-1B** | **320.0 MB** | **640.0 MB** | **1,280.0 MB (1.3 GB)** | **Reference** |
+| 1B Tier | Qwen3.5-2B | 384.0 MB | 768.0 MB | 1,536.0 MB (1.5 GB) | -16.7% |
 | 1B Tier | MiniCPM5-1B | 576.0 MB | 1,152.0 MB | 2,304.0 MB (2.3 GB) | -44.4% |
 | 1B Tier | K2-Horizon-0.9B | 1,344.0 MB | 2,688.0 MB | 5,376.0 MB (5.4 GB) | -76.2% |
 

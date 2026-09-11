@@ -47,7 +47,7 @@
 | **Speculative Horizon** | k=2 (native MTP) | k=1 | k=1 | k=1 |
 | **Native C++ Engine** | Included | None | None | None |
 
-Detailed multi-scale benchmarks (1B, 3B, 7B) against 2026 architectures are provided in [SCALING.md](SCALING.md).
+Detailed multi-scale benchmarks (1B, 3B, 7B, 30B) against 2026 architectures (Qwen3.5, Muse-Glimmer-30B, Gemma4) are provided in [SCALING.md](SCALING.md).
 
 ---
 
