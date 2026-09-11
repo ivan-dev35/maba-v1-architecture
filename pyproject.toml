@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "maba"
 version = "1.0.0"
-description = "Maba v1 Architecture - 100M parameter hybrid language model"
+description = "Maba v1 Architecture: 101M parameter linear recurrence and attention model"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

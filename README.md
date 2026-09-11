@@ -2,9 +2,9 @@
 
 ![Maba v1 Architecture](assets/logo.svg)
 
-**100M Parameter Hybrid Language Model**
+**101M Parameter Language Model Architecture**
 
-*Gated DeltaNet-2 Linear Recurrence + Grouped-Query Attention with 40 Effective Layers and Factorized Embeddings*
+*GDN-2 Linear Recurrence + GQA with 2-Pass Weight Sharing*
 
 <br>
 
@@ -21,14 +21,14 @@
 
 ## Architecture Overview
 
-Maba v1 is an ultra-compact language model architecture designed for maximum intelligence density under 100M parameters. It combines constant-state linear recurrence with grouped attention, immediate block-wise parameter reuse, and factorized embeddings.
+Maba v1 is a 101M parameter architecture combining constant-state linear recurrence with grouped-query attention, block-wise weight sharing, and factorized embeddings.
 
-- **Vocabulary & Embedding**: 32,768 vocabulary with 128-rank intermediate projection. Vocabulary parameter overhead is 4.31% (compared to 15% to 21% in standard models), reserving 95.2% of weights for reasoning layers.
+- **Vocabulary & Embedding**: 32,768 vocabulary with 128-rank intermediate projection. Vocabulary parameter overhead is 4.31% (compared to 15% to 25% in standard models), reserving 95.2% of weights for reasoning layers.
 - **Physical to Effective Depth**: 20 physical transformer blocks evaluated twice consecutively (Immediate Block-Wise Weight Sharing) producing an effective compositional depth of 40 layers.
-- **Hybrid Attention Stack (3:1)**: 15 Gated DeltaNet-2 (GDN-2) blocks for $O(1)$ memory recurrence and 5 Grouped-Query Attention (GQA) blocks with QK-RMSNorm and RoPE ($\theta = 500\,000$).
-- **Multi-Token Prediction (MTP)**: Auxiliary prediction head at horizon $k=2$ for built-in self-speculative decoding without external draft models.
-- **Dual-Component Optimizer**: Hybrid Muon (Newton-Schulz spectral orthogonalization for 2D hidden weights) + AdamW (1D vectors and embeddings).
-- **Dual Runtime**: Complete reference PyTorch implementation and native C++17 inference engine (AVX2, FMA, OpenMP).
+- **Recurrence and Attention (3:1)**: 15 Gated DeltaNet-2 (GDN-2) blocks for O(1) memory recurrence and 5 Grouped-Query Attention (GQA) blocks with QK-RMSNorm and RoPE ($\theta = 500\,000$).
+- **Multi-Token Prediction (MTP)**: Auxiliary prediction head at horizon $k=2$ for self-speculative decoding without external draft models.
+- **Dual-Component Optimizer**: Muon (Newton-Schulz spectral orthogonalization for 2D hidden weights) + AdamW (1D vectors and embeddings).
+- **Dual Runtime**: Reference PyTorch implementation and native C++17 inference engine (AVX2, FMA, OpenMP).
 
 ---
 
@@ -40,7 +40,7 @@ Maba v1 is an ultra-compact language model architecture designed for maximum int
 
 | Architectural Feature | Maba v1 (101M) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
 | :--- | :--- | :--- | :--- | :--- |
-| **Release / Backbone** | **Maba Hybrid (2026)** | SupraLabs (Qwen3, 2026) | Hugging Face (2024) | Meta (ICML 2024) |
+| **Release / Backbone** | **Maba v1 (2026)** | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
 | **Total Parameters** | **101.18M** | 100.68M | 135.0M | 125.0M |
 | **Active Computation Core** | **96.33M (95.2%)** | 75.52M (75.0%) | 106.7M (79.0%) | 106.6M (85.3%) |
 | **Vocabulary Parameter Tax** | **4.31% (factorized)** | 25.0% (unfactorized) | 21.0% (unfactorized) | 14.7% (unfactorized) |
