@@ -138,16 +138,13 @@ maba-v1-architecture/
 │   │   ├── swiglu.hpp
 │   │   ├── mtp.hpp
 │   │   └── model.hpp
-│   ├── src/main.cpp               # C++ CLI benchmark
-│   └── tests/test_numerical.cpp   # PyTorch vs C++ parity audit
+│   └── src/main.cpp               # C++ CLI inference benchmark
 ├── tests/                         # Automated test suite
 │   ├── verify_params.py           # Exact parameter count audit
 │   ├── test_components.py         # Module unit tests
 │   ├── test_scaling.py            # Multi-scale preset and meta device tests
 │   ├── test_speculative_generation.py # MTP decoding test
 │   └── test_e2e_training.py       # End-to-end training test
-├── generate_reference.py          # Generates reference weights & activations
-├── run_full_validation.sh         # Complete end-to-end test suite
 ├── pyproject.toml                 # Packaging standard
 ├── LICENSE                        # MIT License
 ├── SCALING.md                     # 100M-30B scaling specs and benchmarks
@@ -164,15 +161,7 @@ maba-v1-architecture/
 pip install -e .
 ```
 
-### 2. Full Automated Validation
-
-Runs parameter audit, unit tests, speculative generation test, training loop, builds C++ engine, and tests numerical parity:
-
-```bash
-./run_full_validation.sh
-```
-
-### 3. Python CLI
+### 2. Python CLI
 
 Audit parameter topology (100M, 1B, 3B, 7B, 30B):
 ```bash
@@ -202,7 +191,7 @@ Export binary weights for C++ engine:
 python3 -m maba.cli export --output maba_weights.bin
 ```
 
-### 4. C++ Inference Engine
+### 3. C++ Inference Engine
 
 Build:
 ```bash
@@ -211,33 +200,16 @@ cmake ..
 make -j$(nproc)
 ```
 
-Run CLI benchmark:
+Run inference benchmark:
 ```bash
-./cpp/build/maba_cli ../../maba_ref.bin
+./cpp/build/maba_cli maba_weights.bin
 ```
 
-Run PyTorch vs C++ numerical equivalence test:
+### 4. Running Tests
+
 ```bash
-python3 generate_reference.py
-./cpp/build/test_numerical maba_ref.bin ref_logits.bin
+python3 -m unittest discover tests
 ```
-
-Output:
-```text
-Loaded weights from maba_ref.bin (366 tensors).
-Compared 131072 logits: max_diff=8.13305e-05, mean_diff=1.19662e-05
-PASS: numerical equivalence verified
-```
-
----
-
-## Numerical Verification
-
-Activations tested against PyTorch float32 reference:
-- Evaluated logits: 131,072
-- Maximum difference: `8.13e-05`
-- Mean difference: `1.19e-05`
-- Status: `PASS`
 
 ---
 
