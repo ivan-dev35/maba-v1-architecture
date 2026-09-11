@@ -36,31 +36,22 @@ Maba v1 is an ultra-compact language model architecture designed for maximum int
 
 ![Architectural Efficiency Comparison](assets/architecture_comparison.svg)
 
-### Modern Sub-150M Edge Models Comparison
+### Modern Sub-150M Edge Architectures Comparison
 
-| Architectural Feature | Maba v1 (101M) | SmolLM2-135M (HF 2024) | MobileLLM-125M (Meta 2024) | Dense Baseline (100M) |
+| Architectural Feature | Maba v1 (101M) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
 | :--- | :--- | :--- | :--- | :--- |
-| **Total Parameters** | **101.18M** | 135.0M | 125.0M | 100.0M |
-| **Active Computation Core** | **96.33M (95.2%)** | 106.7M (79.0%) | 106.6M (85.3%) | 79.0M (79.0%) |
-| **Vocabulary Parameter Tax** | **4.31% (factorized)** | 21.0% (unfactorized) | 14.7% (unfactorized) | 21.0% (unfactorized) |
-| **Effective Reasoning Depth** | **40 layers** | 30 layers | 30 layers | 24 layers |
-| **Weight Sharing Scheme** | **Block-wise (2x)** | None (single-pass) | Layer-level | None |
-| **Attention / Recurrence** | **75% GDN-2 + 25% GQA** | 100% GQA | 100% GQA | 100% MHA / GQA |
-| **KV-Cache Footprint (10k tokens)**| **48.8 MB (-75.3%)** | 197.8 MB | 197.8 MB | 293.0 MB |
-| **Speculative Decoding** | **Built-in MTP (k=2)** | None | None | None |
-| **Native C++ Engine** | **Included (AVX2/OpenMP)**| External / Third-party | External / Third-party | External / Third-party |
-
-### Empirical Benchmark Evaluation
-
-| Benchmark | Metric | Maba v1 (101M) | SmolLM2-135M | MobileLLM-125M | Dense Baseline (100M) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **ARC-Challenge** | 25-shot acc (%) | **46.8** | 43.9 | 43.1 | 34.2 |
-| **HellaSwag** | 10-shot acc (%) | **44.5** | 42.1 | 41.6 | 35.8 |
-| **MMLU** | 5-shot acc (%) | **33.6** | 31.5 | 29.8 | 25.4 |
-| **GSM8K** | 8-shot acc (%) | **21.4** | 18.2 | 15.9 | 9.5 |
-| **HumanEval** | pass@1 (%) | **18.3** | 15.2 | 12.8 | 7.9 |
-| **PIQA** | 0-shot acc (%) | **70.2** | 68.4 | 66.8 | 60.5 |
-| **Throughput (CPU)** | single-thread (tok/s) | **84.5** | 58.2 | 56.4 | 48.1 |
+| **Release / Backbone** | **Maba Hybrid (2026)** | SupraLabs (Qwen3, 2026) | Hugging Face (2024) | Meta (ICML 2024) |
+| **Total Parameters** | **101.18M** | 100.68M | 135.0M | 125.0M |
+| **Active Computation Core** | **96.33M (95.2%)** | 75.52M (75.0%) | 106.7M (79.0%) | 106.6M (85.3%) |
+| **Vocabulary Parameter Tax** | **4.31% (factorized)** | 25.0% (unfactorized) | 21.0% (unfactorized) | 14.7% (unfactorized) |
+| **Effective Reasoning Depth** | **40 layers** | 12 layers | 30 layers | 30 layers |
+| **Weight Sharing Scheme** | **Block-wise (2x)** | None (single-pass) | None (single-pass) | Layer-level |
+| **Attention / Recurrence** | **75% GDN-2 + 25% GQA** | 100% Full Attention | 100% GQA | 100% GQA |
+| **KV-Cache (8k tokens)** | **39.1 MB** | 100.7 MB | 188.7 MB | 125.8 MB |
+| **KV-Cache (16k tokens)** | **78.1 MB** | 201.3 MB | 377.5 MB | 251.7 MB |
+| **KV Memory Reduction** | **83.3% savings** | 57.0% savings | 19.5% savings | 46.3% savings |
+| **Speculative Decoding** | **Built-in MTP (k=2)** | None (k=1) | None (k=1) | None (k=1) |
+| **Native C++ Engine** | **Included (AVX2/OpenMP)** | External | External | External |
 
 ---
 

@@ -1,37 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140" width="100%" height="140">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 104" width="100%" height="104">
   <defs>
     <linearGradient id="logoBlue" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#2563eb"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
   </defs>
-  <rect width="800" height="140" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
-  <g transform="translate(36, 28)">
-    <rect width="84" height="84" rx="18" fill="url(#logoBlue)"/>
-    <path d="M 42,20 L 64,62 L 20,62 Z" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linejoin="round"/>
-    <circle cx="42" cy="48" r="4.5" fill="#ffffff"/>
-    <path d="M 28,54 Q 42,34 56,54" fill="none" stroke="#93c5fd" stroke-width="3" stroke-linecap="round"/>
+  <rect width="800" height="104" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(28, 20)">
+    <rect width="64" height="64" rx="14" fill="url(#logoBlue)"/>
+    <path d="M 32,15 L 49,48 L 15,48 Z" fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linejoin="round"/>
+    <circle cx="32" cy="37" r="3.6" fill="#ffffff"/>
+    <path d="M 21,42 Q 32,26 43,42" fill="none" stroke="#93c5fd" stroke-width="2.4" stroke-linecap="round"/>
   </g>
-  <text x="142" y="66" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="38" font-weight="800" fill="#0f172a" letter-spacing="0.5">
+  <text x="110" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" letter-spacing="0.3">
     Maba<tspan fill="#2563eb">.v1</tspan>
   </text>
-  <text x="144" y="90" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500" fill="#64748b" letter-spacing="0.3">
-    101M Hybrid Language Model: GDN-2 Recurrence + Grouped-Query Attention
+  <text x="111" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="500" fill="#64748b" letter-spacing="0.2">
+    101M Hybrid Language Model: GDN-2 Linear Recurrence + Grouped-Query Attention
   </text>
-  <g transform="translate(144, 100)">
-    <rect width="110.0" height="20" rx="5" fill="#eff6ff" stroke="#2563eb" stroke-width="1" opacity="0.9"/>
-    <text x="55.0" y="14" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="10" font-weight="700" fill="#2563eb">101.18M CORE</text>
-  </g>
-  <g transform="translate(264.0, 100)">
-    <rect width="117.5" height="20" rx="5" fill="#eef2ff" stroke="#4f46e5" stroke-width="1" opacity="0.9"/>
-    <text x="58.75" y="14" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="10" font-weight="700" fill="#4f46e5">40 EFF LAYERS</text>
-  </g>
-  <g transform="translate(391.5, 100)">
-    <rect width="125.0" height="20" rx="5" fill="#f0fdfa" stroke="#0d9488" stroke-width="1" opacity="0.9"/>
-    <text x="62.5" y="14" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="10" font-weight="700" fill="#0d9488">4.3% VOCAB TAX</text>
-  </g>
-  <g transform="translate(526.5, 100)">
-    <rect width="95.0" height="20" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="1" opacity="0.9"/>
-    <text x="47.5" y="14" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, monospace" font-size="10" font-weight="700" fill="#059669">C++17 AVX2</text>
-  </g>
 </svg>
