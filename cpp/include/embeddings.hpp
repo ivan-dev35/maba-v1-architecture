@@ -44,4 +44,3 @@ inline void dequantize_logits(
 
 } // namespace maba
 
-namespace apex = maba;

@@ -182,4 +182,3 @@ inline void gated_residual(Tensor& out, const Tensor& residual, const Tensor& su
 
 } // namespace maba
 
-namespace apex = maba;

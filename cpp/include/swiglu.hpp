@@ -41,4 +41,3 @@ inline void swiglu_forward(Tensor& out, const Tensor& x, const FFNW& w) {
 
 } // namespace maba
 
-namespace apex = maba;

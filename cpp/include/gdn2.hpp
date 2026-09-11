@@ -190,4 +190,3 @@ inline void gdn2_forward(Tensor& out, const Tensor& x, const GDN2W& w, GDN2State
 
 } // namespace maba
 
-namespace apex = maba;

@@ -198,5 +198,4 @@ class Config:
             "effective_depth": self.n_layers * self.n_passes,
         }
 
-Apex100MConfig = Config
 MabaConfig = Config

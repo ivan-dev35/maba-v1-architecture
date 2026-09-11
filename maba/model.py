@@ -197,6 +197,5 @@ class Model(nn.Module):
                 gen = torch.cat([gen, tok], dim=1)
         return gen
 
-Apex100MForCausalLM = Model
 MabaLM = Model
 MabaModel = Model

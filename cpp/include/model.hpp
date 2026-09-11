@@ -210,4 +210,3 @@ using Apex100MModel = Model;
 
 } // namespace maba
 
-namespace apex = maba;

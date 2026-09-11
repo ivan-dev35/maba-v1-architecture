@@ -160,4 +160,3 @@ inline void gqa_forward(
 
 } // namespace maba
 
-namespace apex = maba;

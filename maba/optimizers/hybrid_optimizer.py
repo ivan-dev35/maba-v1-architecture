@@ -60,5 +60,4 @@ class HybridOpt:
         if self.adamw and d.get("adamw"):
             self.adamw.load_state_dict(d["adamw"])
 
-ApexHybridOptimizer = HybridOpt
 MabaOptimizer = HybridOpt

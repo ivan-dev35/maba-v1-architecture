@@ -79,5 +79,4 @@ class Tokenizer:
                 b.extend(f" {tok}".encode("utf-8", errors="ignore"))
         return b.decode("utf-8", errors="replace")
 
-ApexTokenizer = Tokenizer
 MabaTokenizer = Tokenizer

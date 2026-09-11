@@ -40,4 +40,3 @@ inline void mtp_predict(
 
 } // namespace maba
 
-namespace apex = maba;

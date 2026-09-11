@@ -99,14 +99,14 @@ Complete comparative breakdowns and mathematical scaling formulas are documented
 
 ```text
 maba-v1-architecture/
-├── .github/                       # CI workflows & issue templates
-│   ├── workflows/ci.yml           # Automated GitHub Actions test pipeline
-│   └── ISSUE_TEMPLATE/            # Bug report & feature templates
+├── .github/                       # CI workflows
+│   └── workflows/ci.yml           # Automated GitHub Actions test pipeline
 ├── assets/
 │   ├── logo.svg                   # Vector architecture logo
-│   └── architecture_comparison.svg # Comparison benchmark chart
+│   ├── architecture_comparison.svg # 100M efficiency comparison chart
+│   └── scaling_comparison.svg     # Multi-scale 100M-30B comparison chart
 ├── maba/                          # Python package
-│   ├── config.py                  # Architecture configuration
+│   ├── config.py                  # Architecture configuration and presets
 │   ├── model.py                   # Model definition and generation
 │   ├── tokenizer.py               # Byte-level tokenizer (V = 32,768)
 │   ├── dataset.py                 # Pretraining dataset
@@ -149,10 +149,8 @@ maba-v1-architecture/
 ├── generate_reference.py          # Generates reference weights & activations
 ├── run_full_validation.sh         # Complete end-to-end test suite
 ├── pyproject.toml                 # Packaging standard
-├── setup.py                       # Setuptools installer
-├── CONTRIBUTING.md                # Contribution guidelines
 ├── LICENSE                        # MIT License
-├── SCALING.md                     # 100M-7B scaling specs and benchmarks
+├── SCALING.md                     # 100M-30B scaling specs and benchmarks
 └── README.md
 ```
 

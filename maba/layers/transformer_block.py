@@ -92,5 +92,4 @@ class Block(nn.Module):
                 new_states.append(updated_st)
         return h, new_states
 
-ApexTransformerBlock = Block
 MabaBlock = Block
