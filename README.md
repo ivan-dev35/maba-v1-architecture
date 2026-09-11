@@ -1,75 +1,69 @@
 <div align="center">
 
-![Maba v1 Architecture](assets/logo.svg)
+<img src="assets/logo.svg" width="96" height="96" alt="maba">
 
-**101M Parameter Language Model Architecture**
+# maba-v1
 
-*GDN-2 Linear Recurrence + GQA with 2-Pass Weight Sharing*
-
-<br>
+101M parameter language model architecture with GDN-2 recurrence and GQA.
 
 [![CI](https://github.com/ivan-dev35/maba-v1-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/ivan-dev35/maba-v1-architecture/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
 [![C++](https://img.shields.io/badge/C++-17-00599C.svg?logo=c%2B%2B&logoColor=white)](cpp/)
-[![Parameters](https://img.shields.io/badge/Parameters-101.18M-brightgreen.svg)](#exact-parameter-topology)
-[![Layers](https://img.shields.io/badge/Effective%20Layers-40-blueviolet.svg)](#architecture-overview)
 
 </div>
 
 ---
 
-## Architecture Overview
+## Architecture
 
-Maba v1 is a 101M parameter architecture combining constant-state linear recurrence with grouped-query attention, block-wise weight sharing, and factorized embeddings.
-
-- **Vocabulary & Embedding**: 32,768 vocabulary with 128-rank intermediate projection. Vocabulary parameter overhead is 4.31% (compared to 15% to 25% in standard models), reserving 95.2% of weights for reasoning layers.
-- **Physical to Effective Depth**: 20 physical transformer blocks evaluated twice consecutively (Immediate Block-Wise Weight Sharing) producing an effective compositional depth of 40 layers.
-- **Recurrence and Attention (3:1)**: 15 Gated DeltaNet-2 (GDN-2) blocks for O(1) memory recurrence and 5 Grouped-Query Attention (GQA) blocks with QK-RMSNorm and RoPE ($\theta = 500\,000$).
-- **Multi-Token Prediction (MTP)**: Auxiliary prediction head at horizon $k=2$ for self-speculative decoding without external draft models.
-- **Dual-Component Optimizer**: Muon (Newton-Schulz spectral orthogonalization for 2D hidden weights) + AdamW (1D vectors and embeddings).
-- **Dual Runtime**: Reference PyTorch implementation and native C++17 inference engine (AVX2, FMA, OpenMP).
+- **Vocabulary**: 32,768 tokens with rank-128 factorized projection (4.31% parameter tax).
+- **Depth**: 20 physical blocks, 2 passes (40 effective layers).
+- **Layers**: 15 Gated DeltaNet-2 (GDN-2) recurrence blocks + 5 Grouped-Query Attention (GQA) blocks.
+- **Attention**: 10 query heads, 2 key-value heads, head dim 64, RoPE ($\theta = 500\,000$).
+- **FFN**: SwiGLU, intermediate dim 1728.
+- **Speculative decoding**: Built-in Multi-Token Prediction (MTP) head ($k=2$).
+- **Optimizer**: Muon (2D weights) + AdamW (embeddings and 1D vectors).
+- **Runtime**: PyTorch reference and C++17 engine (AVX2, OpenMP).
 
 ---
 
-## Architectural Comparison
+## Comparison
 
 ![Architectural Efficiency Comparison](assets/architecture_comparison.svg)
 
-### Modern Sub-150M Edge Architectures Comparison
-
-| Architectural Feature | Maba v1 (101M) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
+| Feature | Maba v1 (101M) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
 | :--- | :--- | :--- | :--- | :--- |
-| **Release / Backbone** | **Maba v1 (2026)** | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
-| **Total Parameters** | **101.18M** | 100.68M | 135.0M | 125.0M |
-| **Active Computation Core** | **96.33M (95.2%)** | 75.52M (75.0%) | 106.7M (79.0%) | 106.6M (85.3%) |
-| **Vocabulary Parameter Tax** | **4.31% (factorized)** | 25.0% (unfactorized) | 21.0% (unfactorized) | 14.7% (unfactorized) |
-| **Effective Reasoning Depth** | **40 layers** | 12 layers | 30 layers | 30 layers |
-| **Weight Sharing Scheme** | **Block-wise (2x)** | None (single-pass) | None (single-pass) | Layer-level |
-| **Attention / Recurrence** | **75% GDN-2 + 25% GQA** | 100% Full Attention | 100% GQA | 100% GQA |
-| **KV-Cache (8k tokens)** | **39.1 MB** | 100.7 MB | 188.7 MB | 125.8 MB |
-| **KV-Cache (16k tokens)** | **78.1 MB** | 201.3 MB | 377.5 MB | 251.7 MB |
-| **KV Memory Reduction** | **83.3% savings** | 57.0% savings | 19.5% savings | 46.3% savings |
-| **Speculative Decoding** | **Built-in MTP (k=2)** | None (k=1) | None (k=1) | None (k=1) |
-| **Native C++ Engine** | **Included (AVX2/OpenMP)** | External | External | External |
+| **Backbone** | Maba (2026) | Qwen3 (2026) | Transformer (2024) | Transformer (2024) |
+| **Total Parameters** | 101.18M | 100.68M | 135.0M | 125.0M |
+| **Core Parameters** | 96.33M (95.2%) | 75.52M (75.0%) | 106.7M (79.0%) | 106.6M (85.3%) |
+| **Vocab Tax** | 4.31% | 25.0% | 21.0% | 14.7% |
+| **Effective Depth** | 40 layers | 12 layers | 30 layers | 30 layers |
+| **Weight Sharing** | 2-pass block-wise | None | None | Layer-level |
+| **Attention / Recurrence** | 75% GDN-2 + 25% GQA | 100% Full Attention | 100% GQA | 100% GQA |
+| **KV-Cache (8k tokens)** | 39.1 MB | 100.7 MB | 188.7 MB | 125.8 MB |
+| **KV-Cache (16k tokens)** | 78.1 MB | 201.3 MB | 377.5 MB | 251.7 MB |
+| **KV Memory Reduction** | 83.3% | 57.0% | 19.5% | 46.3% |
+| **Speculative Horizon** | k=2 (native MTP) | k=1 | k=1 | k=1 |
+| **Native C++ Engine** | Included | None | None | None |
 
 ---
 
-## Exact Parameter Topology
+## Parameter Topology
 
-| Component | Specification / Formula | Parameters | Fraction |
+| Component | Dimensions | Parameters | Fraction |
 | :--- | :--- | :--- | :--- |
 | Token Embeddings (W_emb) | 32,768 x 128 | 4,194,304 | 4.14% |
 | Input Factor Projection (W_proj_in) | 128 x 640 | 81,920 | 0.08% |
 | Output Factor Projection (W_proj_out) | 640 x 128 | 81,920 | 0.08% |
 | Tied LM-Head | Tied with W_emb.T | 0 | 0.00% |
-| **Subtotal: Embedding Block** | | **4,358,144** | **4.31%** |
+| **Subtotal: Embeddings** | | **4,358,144** | **4.31%** |
 | 15 GDN-2 Blocks | 15 x (Q,K,V,O + Conv + Gates + SwiGLU + Norms) | 74,803,200 | 73.93% |
 | 5 GQA Blocks | 5 x (Q,K,V,O + QK-Norm + SwiGLU + Norms) | 21,529,600 | 21.28% |
-| **Subtotal: Computation Core** | | **96,332,800** | **95.21%** |
+| **Subtotal: Core** | | **96,332,800** | **95.21%** |
 | Final RMSNorm | 640 | 640 | 0.001% |
 | Auxiliary MTP Head (k=2) | (640 + 128) x 640 + 640 | 492,160 | 0.49% |
-| **Grand Total** | **Target Architecture** | **101,183,744** | **100.0%** |
+| **Total** | | **101,183,744** | **100.0%** |
 
 ---
 
@@ -144,7 +138,7 @@ pip install -e .
 
 ### 2. Full Automated Validation
 
-Runs parameter audit, unit tests, speculative generation test, training loop test, builds C++ engine, and verifies bit-for-bit numerical equivalence between PyTorch and C++:
+Runs parameter audit, unit tests, speculative generation test, training loop, builds C++ engine, and tests numerical parity:
 
 ```bash
 ./run_full_validation.sh
@@ -206,13 +200,13 @@ PASS: numerical equivalence verified
 
 ---
 
-## Numerical Equivalence
+## Numerical Verification
 
-The C++ engine is mathematically verified against PyTorch float32 activations across 40 effective layers:
-- Logits evaluated: 131,072
-- Maximum absolute difference: `8.13e-05`
-- Mean absolute difference: `1.19e-05`
-- Status: `PASS` (within float32 precision bounds)
+Activations tested against PyTorch float32 reference:
+- Evaluated logits: 131,072
+- Maximum difference: `8.13e-05`
+- Mean difference: `1.19e-05`
+- Status: `PASS`
 
 ---
 

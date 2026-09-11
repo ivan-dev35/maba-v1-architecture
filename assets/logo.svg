@@ -1,17 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 72" width="100%" height="72">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <defs>
     <linearGradient id="logoBlue" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#2563eb"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
   </defs>
-  <g transform="translate(10, 10)">
-    <rect width="52" height="52" rx="12" fill="url(#logoBlue)"/>
-    <path d="M 26,12 L 40,39 L 12,39 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="26" cy="30" r="3" fill="#ffffff"/>
-    <path d="M 17,34 Q 26,21 35,34" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-  </g>
-  <text x="76" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="34" font-weight="800" fill="#0f172a" letter-spacing="-0.5">
-    maba<tspan fill="#2563eb">.v1</tspan>
-  </text>
+  <rect width="128" height="128" rx="28" fill="url(#logoBlue)"/>
+  <path d="M 64,28 L 100,92 L 28,92 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round"/>
+  <circle cx="64" cy="70" r="7" fill="#ffffff"/>
+  <path d="M 42,80 Q 64,52 86,80" fill="none" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
 </svg>
