@@ -10,7 +10,7 @@ from maba.model import Model
 
 class TestScaling(unittest.TestCase):
     def test_presets_exist(self):
-        for preset in ["100M", "1B", "3B", "7B"]:
+        for preset in ["100M", "1B", "3B", "7B", "30B"]:
             cfg = Config.from_preset(preset)
             self.assertIsNotNone(cfg)
 
@@ -19,7 +19,7 @@ class TestScaling(unittest.TestCase):
             Config.from_preset("999B")
 
     def test_param_count_parity_with_meta_device(self):
-        presets = ["100M", "1B", "3B", "7B"]
+        presets = ["100M", "1B", "3B", "7B", "30B"]
         for preset in presets:
             cfg = Config.from_preset(preset)
             calc = cfg.compute_param_count()

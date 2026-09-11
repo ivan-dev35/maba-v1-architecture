@@ -37,7 +37,7 @@ def main():
 
     # Params
     p_par = sub.add_parser("params", help="Audit model parameter topology")
-    p_par.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B"], help="Model scale preset")
+    p_par.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B", "30B"], help="Model scale preset")
 
     args = parser.parse_args()
 

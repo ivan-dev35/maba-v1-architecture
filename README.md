@@ -69,26 +69,27 @@ Detailed multi-scale benchmarks (1B, 3B, 7B) against 2026 architectures are prov
 
 ---
 
-## Scaling (100M - 7B)
+## Scaling (100M - 30B)
 
-The Maba architecture scales from 100M to 1B, 3B, and 7B while maintaining factorized embeddings and a 3:1 ratio between GDN-2 recurrence and GQA attention:
+The Maba architecture scales from 100M to 1B, 3B, 7B, and 30B while maintaining factorized embeddings and a 3:1 ratio between GDN-2 recurrence and GQA attention:
 
-| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B |
-| :--- | :--- | :--- | :--- | :--- |
-| **Total Parameters** | 101.18M | 1,004.7M (1.00B) | 2,977.2M (2.98B) | 7,127.9M (7.13B) |
-| **Core Parameters** | 96.33M (95.21%) | 982.5M (97.79%) | 2,941.3M (98.80%) | 7,071.9M (99.21%) |
-| **Vocab Tax** | 4.31% | 1.74% | 0.90% | 0.52% |
-| **Model Dimension (dim)** | 640 | 2048 | 2816 | 4096 |
-| **Physical Blocks** | 20 (15 GDN + 5 GQA) | 20 (15 GDN + 5 GQA) | 32 (24 GDN + 8 GQA) | 36 (27 GDN + 9 GQA) |
-| **Effective Depth** | 40 layers | 40 layers | 64 layers | 72 layers |
-| **Heads (Q / KV)** | 10 / 2 (d=64) | 16 / 4 (d=128) | 22 / 4 (d=128) | 32 / 8 (d=128) |
-| **FFN Dimension (d_ffn)** | 1728 | 5504 | 7488 | 11008 |
-| **KV-Cache (128k context)** | 156.2 MB | 1,280.0 MB | 2,048.0 MB | 4,608.0 MB |
+| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B | Maba-30B (Agentic) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Total Parameters** | 101.18M | 1,004.7M (1.00B) | 2,977.2M (2.98B) | 7,127.9M (7.13B) | 29,039.9M (29.04B) |
+| **Core Parameters** | 96.33M (95.21%) | 982.5M (97.79%) | 2,941.3M (98.80%) | 7,071.9M (99.21%) | 28,930.9M (99.62%) |
+| **Vocab Tax** | 4.31% | 1.74% | 0.90% | 0.52% | 0.21% |
+| **Model Dimension (dim)** | 640 | 2048 | 2816 | 4096 | 6656 |
+| **Physical Blocks** | 20 (15 GDN + 5 GQA) | 20 (15 GDN + 5 GQA) | 32 (24 GDN + 8 GQA) | 36 (27 GDN + 9 GQA) | 52 (39 GDN + 13 GQA) |
+| **Effective Depth** | 40 layers | 40 layers | 64 layers | 72 layers | 104 layers |
+| **Heads (Q / KV)** | 10 / 2 (d=64) | 16 / 4 (d=128) | 22 / 4 (d=128) | 32 / 8 (d=128) | 52 / 4 (d=128) |
+| **FFN Dimension (d_ffn)** | 1728 | 5504 | 7488 | 11008 | 19968 |
+| **KV-Cache (128k context)** | 156.2 MB | 1,280.0 MB | 2,048.0 MB | 4,608.0 MB | 3,495.3 MB |
 
-### KV-Cache Footprint (128k Sequence Length, FP16)
-- **Maba-1B (1,280 MB)** vs Llama-3.2-1B (4,096 MB): **68.8% memory reduction**.
-- **Maba-3B (2,048 MB)** vs Spark-X2.5-4B (11,520 MB): **82.2% memory reduction**.
-- **Maba-7B (4,608 MB)** vs K2-Horizon-7B (18,432 MB): **75.0% memory reduction**.
+### KV-Cache Footprint (131k Sequence Length, FP16)
+- **Maba-30B (3.5 GB)** vs Qwen3.8-27B (8.6 GB) / Gemma4-31B (28.3 GB): **59.3% to 87.7% memory reduction**.
+- **Maba-7B (4.6 GB)** vs Qwen3-8B (19.3 GB) / K2-Horizon-7B (18.4 GB): **75.0% to 76.2% memory reduction**.
+- **Maba-3B (2.0 GB)** vs Spark-X2.5-4B (11.5 GB): **82.2% memory reduction**.
+- **Maba-1B (1.3 GB)** vs K2-Horizon-0.9B (5.4 GB): **76.2% memory reduction**.
 
 Complete comparative breakdowns and mathematical scaling formulas are documented in [SCALING.md](SCALING.md).
 
@@ -175,11 +176,12 @@ Runs parameter audit, unit tests, speculative generation test, training loop, bu
 
 ### 3. Python CLI
 
-Audit parameter topology (100M, 1B, 3B, 7B):
+Audit parameter topology (100M, 1B, 3B, 7B, 30B):
 ```bash
 python3 -m maba.cli params --scale 100M
 python3 -m maba.cli params --scale 1B
 python3 -m maba.cli params --scale 7B
+python3 -m maba.cli params --scale 30B
 ```
 
 Generate text:

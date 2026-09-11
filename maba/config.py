@@ -124,8 +124,27 @@ class Config:
                 mtp_k=2,
                 mtp_weight=0.3,
             )
+        elif s in ("30B", "29B", "AGENTIC"):
+            return cls(
+                vocab_size=64256,
+                d_emb=768,
+                dim=6656,
+                n_layers=52,
+                n_passes=2,
+                layer_types=[0, 0, 0, 1] * 13,
+                n_heads=52,
+                d_head=128,
+                n_kv_heads=4,
+                kernel_size=4,
+                d_ffn=19968,
+                gate_bias=2.0,
+                rope_theta=500000.0,
+                max_len=131072,
+                mtp_k=2,
+                mtp_weight=0.3,
+            )
         else:
-            raise ValueError(f"Unknown scale preset: {scale}. Available presets: 100M, 1B, 3B, 7B")
+            raise ValueError(f"Unknown scale preset: {scale}. Available presets: 100M, 1B, 3B, 7B, 30B")
 
     get_scale = from_preset
 
