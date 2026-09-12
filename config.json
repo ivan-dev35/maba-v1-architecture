@@ -50,5 +50,6 @@
   "rms_norm_eps": 1e-06,
   "init_std": 0.02,
   "torch_dtype": "float32",
-  "transformers_version": "4.49.0"
+  "transformers_version": "4.49.0",
+  "model_version": "1.1.0"
 }

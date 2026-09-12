@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "maba"
-version = "1.0.0"
-description = "Maba v1 Architecture: 101M parameter linear recurrence and attention model"
+version = "1.1.0"
+description = "Maba v1.1 Architecture: 101M parameter linear recurrence and attention model"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

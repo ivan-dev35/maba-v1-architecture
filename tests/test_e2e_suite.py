@@ -1104,7 +1104,7 @@ class TestTier4RealWorldScenarios(unittest.TestCase):
         """
         Scenario 4: 2-process CPU Gloo DDP simulation for gradient all-reduce synchronization.
         """
-        ctx = mp.get_context("fork")
+        ctx = mp.get_context("spawn")
         p0_r, p0_w = ctx.Pipe()
         p1_r, p1_w = ctx.Pipe()
         port = find_free_port()

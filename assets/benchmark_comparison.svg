@@ -211,41 +211,41 @@
   <text x="181.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">CPM5</text></g>
   <g transform="translate(285, 305)">  <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#111827">Inference Speed (tok/s)</text>
   <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Single NVIDIA L4 bfloat16</text>
-  <text x="26" y="78.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">300</text>
-  <text x="26" y="100.6" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">250</text>
-  <text x="26" y="122.7" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">200</text>
-  <text x="26" y="143.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">150</text>
-  <text x="26" y="165.6" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">100</text>
+  <text x="26" y="78.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">450</text>
+  <text x="26" y="107.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">350</text>
+  <text x="26" y="136.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">250</text>
+  <text x="26" y="165.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">150</text>
+  <text x="26" y="194.0" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">50</text>
   <text x="26" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0</text>
   <line x1="32" y1="205.0" x2="220" y2="205.0" stroke="#e5e7eb" stroke-width="1"/>
-  <path d="M 42.0,205.0 L 42.0,173.12 Q 42.0,169.12 46.0,169.12 L 64.0,169.12 Q 68.0,169.12 68.0,173.12 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
-<g transform="translate(55.0, 183.1)">
+  <path d="M 42.0,205.0 L 42.0,91.12 Q 42.0,87.12 46.0,87.12 L 64.0,87.12 Q 68.0,87.12 68.0,91.12 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
+<g transform="translate(55.0, 101.12)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#maba_icon" x="-9.5" y="-9.5"/>
         </g>
-  <text x="55.0" y="163.1" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">82.8</text>
-  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Maba</text>
-  <path d="M 84.0,205.0 L 84.0,134.72666666666666 Q 84.0,130.72666666666666 88.0,130.72666666666666 L 106.0,130.72666666666666 Q 110.0,130.72666666666666 110.0,134.72666666666666 L 110.0,205.0 Z" fill="url(#qwenGrad)"/>
-<g transform="translate(97.0, 144.7)">
+  <text x="55.0" y="81.12" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">394.2</text>
+  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#305cfc">Maba</text>
+  <path d="M 84.0,205.0 L 84.0,155.48 Q 84.0,151.48 88.0,151.48 L 106.0,151.48 Q 110.0,151.48 110.0,155.48 L 110.0,205.0 Z" fill="url(#qwenGrad)"/>
+<g transform="translate(97.0, 165.48)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#qwen_icon" x="-9.5" y="-9.5"/>
         </g>
-  <text x="97.0" y="124.7" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">171.4</text>
+  <text x="97.0" y="145.48" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">171.4</text>
   <text x="97.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen</text>
-  <path d="M 126.0,205.0 L 126.0,140.75 Q 126.0,136.75 130.0,136.75 L 148.0,136.75 Q 152.0,136.75 152.0,140.75 L 152.0,205.0 Z" fill="url(#flashGrad)"/>
-<g transform="translate(139.0, 150.8)">
+  <path d="M 126.0,205.0 L 126.0,159.50 Q 126.0,155.50 130.0,155.50 L 148.0,155.50 Q 152.0,155.50 152.0,159.50 L 152.0,205.0 Z" fill="url(#flashGrad)"/>
+<g transform="translate(139.0, 169.50)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#flash_icon" x="-9.5" y="-9.5"/>
         </g>
-  <text x="139.0" y="130.8" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">157.5</text>
+  <text x="139.0" y="149.50" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">157.5</text>
   <text x="139.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Flash</text>
-  <path d="M 168.0,205.0 L 168.0,88.44666666666666 Q 168.0,84.44666666666666 172.0,84.44666666666666 L 190.0,84.44666666666666 Q 194.0,84.44666666666666 194.0,88.44666666666666 L 194.0,205.0 Z" fill="url(#cpmGrad)"/>
-<g transform="translate(181.0, 98.4)">
+  <path d="M 168.0,205.0 L 168.0,124.63 Q 168.0,120.63 172.0,120.63 L 190.0,120.63 Q 194.0,120.63 194.0,124.63 L 194.0,205.0 Z" fill="url(#cpmGrad)"/>
+<g transform="translate(181.0, 134.63)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#cpm_icon" x="-9.5" y="-9.5"/>
         </g>
-  <text x="181.0" y="78.4" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#111827">278.2</text>
-  <text x="181.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#e11d48">CPM5</text></g>
+  <text x="181.0" y="114.63" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">278.2</text>
+  <text x="181.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">CPM5</text></g>
   <g transform="translate(535, 305)">  <text x="0" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" fill="#111827">DDP Training Speed</text>
   <text x="0" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="400" fill="#6b7280">Tokens / Second Across 4x NVIDIA L4</text>
   <text x="26" y="78.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">10k</text>
@@ -255,9 +255,9 @@
   <text x="26" y="182.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">2k</text>
   <text x="26" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0k</text>
   <line x1="32" y1="205.0" x2="220" y2="205.0" stroke="#e5e7eb" stroke-width="1"/>
-  <path d="M 42.0,205.0 L 42.0,200.42 Q 42.0,196.42 46.0,196.42 L 64.0,196.42 Q 68.0,196.42 68.0,200.42 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
-  <text x="55.0" y="190.4" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">660</text>
-  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Maba</text>
+  <path d="M 42.0,205.0 L 42.0,176.6 Q 42.0,172.6 46.0,172.6 L 64.0,172.6 Q 68.0,172.6 68.0,176.6 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
+  <text x="55.0" y="166.6" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#305cfc">2185</text>
+  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#305cfc">Maba</text>
   <path d="M 84.0,205.0 L 84.0,191.32 Q 84.0,187.32 88.0,187.32 L 106.0,187.32 Q 110.0,187.32 110.0,191.32 L 110.0,205.0 Z" fill="url(#qwenGrad)"/>
   <text x="97.0" y="181.3" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">1360</text>
   <text x="97.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen</text>
@@ -280,13 +280,13 @@
   <text x="26" y="182.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">10M</text>
   <text x="26" y="208.5" text-anchor="end" font-family="sans-serif" font-size="10" fill="#9ca3af">0M</text>
   <line x1="32" y1="205.0" x2="220" y2="205.0" stroke="#e5e7eb" stroke-width="1"/>
-  <path d="M 42.0,205.0 L 42.0,157.0 Q 42.0,153.0 46.0,153.0 L 64.0,153.0 Q 68.0,153.0 68.0,157.0 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
-<g transform="translate(55.0, 167.0)">
+  <path d="M 42.0,205.0 L 42.0,183.0 Q 42.0,179.0 46.0,179.0 L 64.0,179.0 Q 68.0,179.0 68.0,183.0 L 68.0,205.0 Z" fill="url(#mabaGrad)"/>
+<g transform="translate(55.0, 193.0)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#maba_icon" x="-9.5" y="-9.5"/>
         </g>
-  <text x="55.0" y="147.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">20.0M</text>
-  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Maba</text>
+  <text x="55.0" y="173.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#305cfc">10.0M</text>
+  <text x="55.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#305cfc">Maba</text>
   <path d="M 84.0,205.0 L 84.0,183.0 Q 84.0,179.0 88.0,179.0 L 106.0,179.0 Q 110.0,179.0 110.0,183.0 L 110.0,205.0 Z" fill="url(#qwenGrad)"/>
   <text x="97.0" y="173.0" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="500" fill="#4b5563">10.0M</text>
   <text x="97.0" y="221.0" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="500" fill="#6b7280">Qwen</text>
@@ -306,7 +306,7 @@
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
           <use href="#maba_icon" x="-9.5" y="-9.5"/>
         </g>
-    <text x="16" y="10" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">Maba v1 (101M, GDN-2+GQA)</text>
+    <text x="16" y="10" font-family="sans-serif" font-size="12" font-weight="700" fill="#111827">Maba v1.1 (101M, GDN-2+GQA)</text>
     
     <g transform="translate(240.0, 6.0)">
           <circle cx="0" cy="0" r="10.5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
