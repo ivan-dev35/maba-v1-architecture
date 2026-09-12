@@ -23,6 +23,10 @@ from .hardware import (
     reduce_gradients
 )
 
+# Ensure Config is registered in safe globals for PyTorch 2.6+ weights_only loading
+if hasattr(torch, "serialization") and hasattr(torch.serialization, "add_safe_globals"):
+    torch.serialization.add_safe_globals([Config])
+
 def train(
     n_steps: int = 50,
     batch_size: int = 4,

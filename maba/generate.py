@@ -23,7 +23,8 @@ def spec_gen(
     steps = 0
     t0 = time.time()
 
-    out = model(cur)
+    out = model(cur, return_states=True)
+    states = out["states"]
     lg = out["logits"]
     nh = out["hidden_states"]
 
@@ -35,25 +36,30 @@ def spec_gen(
 
     while cur.shape[1] - inp.shape[1] < max_new_tokens:
         steps += 1
-        cand = torch.cat([cur, t1, d2], dim=1)
-        out = model(cand)
-        lg = out["logits"]
-        nh = out["hidden_states"]
+        pos = cur.shape[1]
+        out1 = model(t1, states=states, return_states=True, start_pos=pos)
+        lg1 = out1["logits"]
+        nh1 = out1["hidden_states"]
+        st1 = out1["states"]
 
-        v_tok = torch.argmax(lg[:, -2, :], dim=-1, keepdim=True)
+        v_tok = torch.argmax(lg1[:, -1, :], dim=-1, keepdim=True)
 
         if v_tok.item() == d2.item():
             n_acc += 1
             cur = torch.cat([cur, t1, d2], dim=1)
-            t1 = torch.argmax(lg[:, -1, :], dim=-1, keepdim=True)
-            last_h = nh[:, -1:, :]
+            out2 = model(d2, states=st1, return_states=True, start_pos=pos + 1)
+            states = out2["states"]
+            nh2 = out2["hidden_states"]
+            t1 = torch.argmax(out2["logits"][:, -1, :], dim=-1, keepdim=True)
+            last_h = nh2[:, -1:, :]
             emb_t1 = model.embeddings.factor_emb(t1)
             mtp_lg = model.mtp_head(last_h, emb_t1, model.embeddings)
             d2 = torch.argmax(mtp_lg[:, -1, :], dim=-1, keepdim=True)
         else:
             cur = torch.cat([cur, t1], dim=1)
+            states = st1
             t1 = v_tok
-            last_h = nh[:, -2:-1, :]
+            last_h = nh1[:, -1:, :]
             emb_t1 = model.embeddings.factor_emb(t1)
             mtp_lg = model.mtp_head(last_h, emb_t1, model.embeddings)
             d2 = torch.argmax(mtp_lg[:, -1, :], dim=-1, keepdim=True)

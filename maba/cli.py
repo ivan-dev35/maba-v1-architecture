@@ -10,6 +10,10 @@ from .train import train, train_tpu_multicore
 from .export_weights import export_bin
 from .hardware import get_device, get_dtype, get_hardware_status, is_tpu_available
 
+# Ensure Config is registered in safe globals for PyTorch 2.6+ weights_only loading
+if hasattr(torch, "serialization") and hasattr(torch.serialization, "add_safe_globals"):
+    torch.serialization.add_safe_globals([Config])
+
 def main():
     parser = argparse.ArgumentParser(description="Maba v1 Architecture CLI")
     sub = parser.add_subparsers(dest="command")
@@ -49,12 +53,22 @@ def main():
         dev = get_device(args.device)
         dtype = get_dtype(dev)
         cfg = Config.from_preset(args.scale)
-        model = Model(cfg).to(device=dev, dtype=dtype)
         if args.weights:
-            sd = torch.load(args.weights, map_location=dev, weights_only=True)
-            if "model_state_dict" in sd:
-                sd = sd["model_state_dict"]
+            ckpt = torch.load(args.weights, map_location=dev, weights_only=True)
+            if isinstance(ckpt, dict) and "config" in ckpt and args.scale == "100M":
+                c = ckpt["config"]
+                if isinstance(c, Config):
+                    cfg = c
+                elif isinstance(c, dict):
+                    cfg = Config.from_dict(c)
+            model = Model(cfg).to(device=dev, dtype=dtype)
+            if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+                sd = ckpt["model_state_dict"]
+            else:
+                sd = ckpt
             model.load_state_dict(sd)
+        else:
+            model = Model(cfg).to(device=dev, dtype=dtype)
         tok = Tokenizer()
 
         if args.speculative:
@@ -89,12 +103,22 @@ def main():
 
     elif args.command == "export":
         cfg = Config.from_preset(args.scale)
-        model = Model(cfg)
         if args.checkpoint:
-            sd = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
-            if "model_state_dict" in sd:
-                sd = sd["model_state_dict"]
+            ckpt = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+            if isinstance(ckpt, dict) and "config" in ckpt and args.scale == "100M":
+                c = ckpt["config"]
+                if isinstance(c, Config):
+                    cfg = c
+                elif isinstance(c, dict):
+                    cfg = Config.from_dict(c)
+            model = Model(cfg)
+            if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+                sd = ckpt["model_state_dict"]
+            else:
+                sd = ckpt
             model.load_state_dict(sd)
+        else:
+            model = Model(cfg)
         export_bin(model, args.output)
 
     elif args.command == "params":

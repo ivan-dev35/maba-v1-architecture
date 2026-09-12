@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass, field, asdict
+from typing import List, Dict, Any
+import torch
 
 @dataclass
 class Config:
@@ -44,6 +45,16 @@ class Config:
     def rms_norm_eps(self) -> float: return self.eps
     @property
     def initializer_range(self) -> float: return self.init_std
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert dataclass config to a serializable Python dictionary."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "Config":
+        """Reconstruct Config from dictionary, ignoring unknown fields for forward compatibility."""
+        valid_fields = {f for f in cls.__dataclass_fields__}
+        return cls(**{k: v for k, v in d.items() if k in valid_fields})
 
     @classmethod
     def from_preset(cls, scale: str = "100M") -> "Config":
@@ -200,3 +211,7 @@ class Config:
         }
 
 MabaConfig = Config
+
+# Register Config with PyTorch safe globals for PyTorch 2.6+ weights_only unpickling
+if hasattr(torch, "serialization") and hasattr(torch.serialization, "add_safe_globals"):
+    torch.serialization.add_safe_globals([Config])

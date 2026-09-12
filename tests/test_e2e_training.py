@@ -62,5 +62,28 @@ class TestEndToEndTraining(unittest.TestCase):
         if os.path.exists(ckpt):
             os.remove(ckpt)
 
+    def test_checkpoint_weights_only_payload_roundtrip(self):
+        cfg = Config(vocab_size=100, dim=64, n_layers=2, n_passes=1, layer_types=[0, 1], n_heads=2, d_head=32, n_kv_heads=1, d_ffn=128)
+        model = Model(cfg)
+        ckpt = "test_full_payload_ckpt.pt"
+        try:
+            torch.save({
+                "config": cfg,
+                "model_state_dict": {k: v.cpu() for k, v in model.state_dict().items()},
+                "step": 3,
+                "loss": 1.5,
+            }, ckpt)
+            loaded = torch.load(ckpt, weights_only=True)
+            self.assertIn("config", loaded)
+            self.assertIn("model_state_dict", loaded)
+            self.assertEqual(loaded["config"].dim, 64)
+            m2 = Model(loaded["config"])
+            incompat = m2.load_state_dict(loaded["model_state_dict"])
+            self.assertEqual(len(incompat.missing_keys), 0)
+            self.assertEqual(len(incompat.unexpected_keys), 0)
+        finally:
+            if os.path.exists(ckpt):
+                os.remove(ckpt)
+
 if __name__ == "__main__":
     unittest.main()

@@ -151,7 +151,11 @@ class Model(nn.Module):
                 else:
                     mtp_loss = (shift_mtp_logits.sum() * 0.0) if shift_mtp_logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
             else:
-                mtp_loss = (logits.sum() * 0.0) if logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                mtp_zero = sum(
+                    (p.sum() * 0.0 for p in self.mtp_head.parameters()),
+                    start=torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                )
+                mtp_loss = (logits.sum() * 0.0 + mtp_zero) if (logits.requires_grad or any(p.requires_grad for p in self.mtp_head.parameters())) else torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
             w_mtp = self.config.mtp_weight if mtp_weight is None else mtp_weight
             total_loss = main_loss + w_mtp * mtp_loss

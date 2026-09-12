@@ -165,13 +165,14 @@ inline void gdn2_fwd(
                 z_t[i] = w_val * v_raw[i];
             }
 
-            for (size_t col = 0; col < d; ++col) {
-                float sum = 0.0f;
-                #pragma omp simd reduction(+:sum)
-                for (size_t row = 0; row < d; ++row) {
-                    sum += e_t[row] * (alpha * S_h[row * d + col]);
+            for (size_t col = 0; col < d; ++col) e_S[col] = 0.0f;
+            for (size_t row = 0; row < d; ++row) {
+                float e_val = e_t[row] * alpha;
+                const float* S_row = &S_h[row * d];
+                #pragma omp simd
+                for (size_t col = 0; col < d; ++col) {
+                    e_S[col] += e_val * S_row[col];
                 }
-                e_S[col] = sum;
             }
 
             for (size_t i = 0; i < d; ++i) delta[i] = z_t[i] - e_S[i];
@@ -185,13 +186,15 @@ inline void gdn2_fwd(
                 }
             }
 
-            for (size_t col = 0; col < d; ++col) {
-                float o_val = 0.0f;
-                #pragma omp simd reduction(+:o_val)
-                for (size_t row = 0; row < d; ++row) {
-                    o_val += q_t[row] * S_h[row * d + col];
+            float* o_ptr = &o_concat.data[t * D + h * d];
+            for (size_t col = 0; col < d; ++col) o_ptr[col] = 0.0f;
+            for (size_t row = 0; row < d; ++row) {
+                float q_val = q_t[row];
+                const float* S_row = &S_h[row * d];
+                #pragma omp simd
+                for (size_t col = 0; col < d; ++col) {
+                    o_ptr[col] += q_val * S_row[col];
                 }
-                o_concat.data[t * D + h * d + col] = o_val;
             }
         }
     }
