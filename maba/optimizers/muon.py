@@ -5,7 +5,8 @@ def newton_schulz5(G: torch.Tensor, steps: int = 5, eps: float = 1e-7) -> torch.
     assert len(G.shape) == 2
     a, b, c = 3.4445, -4.7750, 2.0315
     X = G.bfloat16() if G.dtype == torch.bfloat16 else G.float()
-    X /= (X.norm() + eps)
+    norm = torch.linalg.vector_norm(X)
+    X = X / (norm + eps)
 
     transposed = G.size(0) > G.size(1)
     if transposed:
@@ -64,14 +65,14 @@ class Muon(Optimizer):
 
                 if p.ndim == 2:
                     upd = newton_schulz5(buf, steps=steps, eps=eps)
-                    rms = (p.norm() / (p.numel() ** 0.5)).clamp(min=1e-3)
+                    rms = (torch.linalg.vector_norm(p) / (p.numel() ** 0.5)).clamp(min=1e-3)
                     upd = upd * rms
                 else:
                     upd = buf
 
                 if wd != 0:
-                    p.data.mul_(1.0 - lr * wd)
+                    p.mul_(1.0 - lr * wd)
 
-                p.data.add_(upd, alpha=-lr)
+                p.add_(upd, alpha=-lr)
 
         return loss

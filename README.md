@@ -14,6 +14,8 @@ tags:
 - multi-token-prediction
 - pytorch
 - cpp
+- tpu
+- xla
 pipeline_tag: text-generation
 ---
 
@@ -27,6 +29,7 @@ pipeline_tag: text-generation
 
 [![CI](https://github.com/ivan-dev35/maba-v1-architecture/actions/workflows/ci.yml/badge.svg)](https://github.com/ivan-dev35/maba-v1-architecture/actions)
 [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-maba--v1--architecture-ffcc4b)](https://huggingface.co/AndrewThompson1233/maba-v1-architecture)
+[![TPU](https://img.shields.io/badge/TPU-PyTorch%2FXLA-4285F4.svg?logo=google&logoColor=white)](maba/hardware.py)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org)
 [![C++](https://img.shields.io/badge/C++-17-00599C.svg?logo=c%2B%2B&logoColor=white)](cpp/)
@@ -44,7 +47,7 @@ pipeline_tag: text-generation
 - **FFN**: SwiGLU, intermediate dim 1728.
 - **Speculative decoding**: Built-in Multi-Token Prediction (MTP) head ($k=2$).
 - **Optimizer**: Muon (2D weights) + AdamW (embeddings and 1D vectors).
-- **Runtime**: PyTorch reference and C++17 engine (AVX2, OpenMP).
+- **Runtime**: PyTorch reference (TPU / CUDA / MPS / CPU) and C++17 engine (AVX2, OpenMP).
 
 ---
 
@@ -164,7 +167,8 @@ maba-v1-architecture/
 │   ├── test_components.py         # Module unit tests
 │   ├── test_scaling.py            # Multi-scale preset and meta device tests
 │   ├── test_speculative_generation.py # MTP decoding test
-│   └── test_e2e_training.py       # End-to-end training test
+│   ├── test_e2e_training.py       # End-to-end training test
+│   └── test_tpu.py                # TPU / PyTorch-XLA compatibility tests
 ├── config.json                    # Model configuration and Hub query file
 ├── pyproject.toml                 # Packaging standard
 ├── LICENSE                        # MIT License
@@ -183,6 +187,11 @@ pip install -e .
 ```
 
 ### 2. Python CLI
+
+Inspect hardware accelerators (TPU, CUDA, MPS, CPU):
+```bash
+python3 -m maba.cli hardware
+```
 
 Audit parameter topology (100M, 1B, 3B, 7B, 30B):
 ```bash
@@ -205,6 +214,11 @@ python3 -m maba.cli generate --prompt "def fibonacci(n):" --max-tokens 32 --spec
 Run training on micro-curriculum:
 ```bash
 python3 -m maba.cli train --steps 30 --batch-size 2 --seq-len 32
+```
+
+Train on Google Cloud TPU (single-core or auto-detected):
+```bash
+python3 -m maba.cli train --device tpu --steps 100 --batch-size 4 --seq-len 64
 ```
 
 Export binary weights for C++ engine:
@@ -231,6 +245,34 @@ Run inference benchmark:
 ```bash
 python3 -m unittest discover tests
 ```
+
+---
+
+## Google Cloud TPU Support
+
+Maba includes native support for Google Cloud TPU (v2, v3, v4, v5e, v5p, v6e) and TPU environments (Kaggle TPU, Google Colab TPU) via PyTorch/XLA:
+
+### Hardware Inspection
+```bash
+python3 -m maba.cli hardware
+```
+
+### Single-Core TPU Training
+```bash
+python3 -m maba.cli train --device tpu --steps 100 --batch-size 8 --seq-len 64
+```
+
+### Multi-Core Distributed TPU Pod Training
+To utilize all 8 cores of a Cloud TPU VM (e.g. v2-8, v3-8, v4-8, v5e-8, v6e-8):
+```bash
+python3 -m maba.cli train --device tpu --multi-core --cores 8 --steps 500 --batch-size 8 --seq-len 64
+```
+
+### Architecture Features on TPU
+- **Precision**: Defaults to native `bfloat16` on TPU MXUs (Matrix Multiply Units) for peak computational throughput.
+- **Asynchronous Prefetching**: DataLoaders are automatically wrapped with `MpDeviceLoader` for non-blocking host-to-device transfers.
+- **Cross-Replica Reduction**: `HybridOpt.step(barrier=True)` performs all-reduce across TPU cores and synchronizes lazy execution graphs with `mark_step()`.
+- **Rank-0 Logging**: State checkpoints and metrics are serialized exclusively on the master ordinal.
 
 ---
 

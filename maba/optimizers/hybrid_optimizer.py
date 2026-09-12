@@ -40,12 +40,36 @@ class HybridOpt:
         if self.adamw:
             self.adamw.zero_grad(set_to_none=set_to_none)
 
-    def step(self, closure=None):
+    def step(self, closure=None, barrier: bool = True):
         loss = closure() if closure is not None else None
-        if self.muon:
-            self.muon.step()
-        if self.adamw:
-            self.adamw.step()
+
+        is_xla = False
+        for opt in (self.muon, self.adamw):
+            if opt and opt.param_groups and opt.param_groups[0]["params"]:
+                p = opt.param_groups[0]["params"][0]
+                if p.device.type == "xla":
+                    is_xla = True
+                    break
+
+        if is_xla:
+            try:
+                import torch_xla.core.xla_model as xm
+                if self.muon:
+                    xm.optimizer_step(self.muon, barrier=False)
+                if self.adamw:
+                    xm.optimizer_step(self.adamw, barrier=barrier)
+                elif barrier:
+                    xm.mark_step()
+            except ImportError:
+                if self.muon:
+                    self.muon.step()
+                if self.adamw:
+                    self.adamw.step()
+        else:
+            if self.muon:
+                self.muon.step()
+            if self.adamw:
+                self.adamw.step()
         return loss
 
     def state_dict(self) -> Dict[str, Any]:

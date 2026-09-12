@@ -61,7 +61,7 @@ class GDN2(nn.Module):
         k = k.view(B, L, H, d)
         v = v.view(B, L, H, d)
 
-        k = k / (torch.norm(k, dim=-1, keepdim=True) + 1e-6)
+        k = k / (torch.linalg.vector_norm(k, dim=-1, keepdim=True) + 1e-6)
         e = b * k
         z = w * v
 
