@@ -58,52 +58,22 @@ pipeline_tag: text-generation
 
 ![Architectural Efficiency Comparison](assets/architecture_comparison.svg)
 
-### Macro Architectural Comparison (~100M Class)
+| Feature | Maba v1 (Update 2, 101M) | Supra2-100M (2026) | SmolLM2-135M | MobileLLM-125M |
+| :--- | :--- | :--- | :--- | :--- |
+| **Backbone** | Maba (2026) | Qwen3 (2026) | Transformer (2024) | Transformer (2024) |
+| **Total Parameters** | 101.18M | 100.68M | 135.0M | 125.0M |
+| **Core Parameters** | 96.33M (95.2%) | 75.52M (75.0%) | 106.7M (79.0%) | 106.6M (85.3%) |
+| **Vocab Tax** | 4.31% | 25.0% | 21.0% | 14.7% |
+| **Effective Depth** | 40 layers | 12 layers | 30 layers | 30 layers |
+| **Weight Sharing** | 2-pass block-wise | None | None | Layer-level |
+| **Attention / Recurrence** | 75% GDN-2 + 25% GQA | 100% Full Attention | 100% GQA | 100% GQA |
+| **KV-Cache (8k tokens)** | 39.1 MB | 100.7 MB | 188.7 MB | 125.8 MB |
+| **KV-Cache (16k tokens)** | 78.1 MB | 201.3 MB | 377.5 MB | 251.7 MB |
+| **KV Memory Reduction** | 83.3% | 57.0% | 19.5% | 46.3% |
+| **Speculative Horizon** | k=2 (native MTP) | k=1 | k=1 | k=1 |
+| **Native C++ Engine** | Included | None | None | None |
 
-| Feature | Maba v1 Update 2 (101M) | Qwen 3.8 Flash Next (101M) | Qwen 3.8 Base (0.5B) | MobileLLM-125M (Meta) | SmolLM2-135M |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Backbone** | Maba (2026) | Qwen 3.8 (2026) | Qwen 3.8 (2026) | Transformer (2024) | Transformer (2024) |
-| **Total Parameters** | **101.18M** | 101.0M | 492.0M | 125.0M | 135.0M |
-| **Core Parameters** | **96.33M (95.21%)** | 72.2M (71.50%) | 340.1M (69.15%) | 106.6M (85.28%) | 106.7M (79.04%) |
-| **Vocab Tax** | **4.31%** (Rank 128) | 28.50% (152k Vocab) | 30.85% (152k Vocab) | 14.72% (32k Vocab) | 20.96% (49k Vocab) |
-| **Effective Depth** | **40 layers** (2-pass) | 12 layers | 24 layers | 30 layers | 30 layers |
-| **Weight Sharing** | 2-pass block-wise | None | None | Layer-level | None |
-| **Attention / Recurrence** | 75% GDN-2 + 25% GQA | 100% GQA + Window | 100% GQA | 100% GQA | 100% GQA |
-| **KV-Cache (8k tokens)** | **39.1 MB** | 96.0 MB | 192.0 MB | 125.8 MB | 188.7 MB |
-| **KV-Cache (16k tokens)** | **78.1 MB** | 192.0 MB | 384.0 MB | 251.7 MB | 377.5 MB |
-| **KV Memory Reduction** | **83.3%** | 58.7% | Baseline (0.5B) | 46.3% | 19.5% |
-| **Speculative Horizon** | **k=2 (native MTP)** | k=1 (no drafter) | k=1 (no drafter) | k=1 (no drafter) | k=1 (no drafter) |
-| **Inference Throughput** | **2.85x** | 1.15x | 0.45x | 1.05x | 1.00x |
-| **Native C++ Engine** | Included (AVX2/OMP) | None | None | None | None |
-
-### Benchmark Evaluation Metrics (Normalized Few-Shot / Zero-Shot)
-
-| Benchmark / Capability | Maba v1 Update 2 (101M) | Qwen 3.8 Flash Next (101M) | MobileLLM-125M (Meta) | SmolLM2-135M | Advantage vs 100M Baseline |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **MMLU (5-shot, %)** | **34.2%** | 29.8% | 31.5% | 32.1% | **+4.4%** |
-| **ARC-Challenge (25-shot, %)** | **38.6%** | 34.1% | 35.8% | 36.4% | **+4.5%** |
-| **GSM8K (8-shot reasoning, %)** | **18.4%** | 12.5% | 14.2% | 15.1% | **+5.9%** |
-| **HumanEval (pass@1 Python, %)** | **16.8%** | 11.4% | 13.0% | 14.5% | **+5.4%** |
-| **HellaSwag (10-shot, %)** | **54.1%** | 48.9% | 51.2% | 52.3% | **+5.2%** |
-| **Needle In A Haystack (32k, %)** | **99.4%** | 89.2% | 84.1% | 81.0% | **+10.2%** |
-
-```mermaid
-xychart-beta
-    title "Core Parameter Allocation Ratio (%) vs Vocab Tax"
-    x-axis ["Maba v1 (101M)", "MobileLLM (125M)", "SmolLM2 (135M)", "Qwen 3.8 Flash (101M)", "Qwen 3.8 Base (0.5B)"]
-    y-axis "Core Parameters (%)" 50 --> 100
-    bar [95.2, 85.3, 79.0, 71.5, 69.2]
-```
-
-```mermaid
-xychart-beta
-    title "KV-Cache Memory at 16k Context (MB - Lower is Better)"
-    x-axis ["Maba v1 (101M)", "Qwen 3.8 Flash (101M)", "MobileLLM (125M)", "SmolLM2 (135M)", "Qwen 3.8 Base (0.5B)"]
-    y-axis "KV Memory (MB)" 0 --> 400
-    bar [78.1, 192.0, 251.7, 377.5, 384.0]
-```
-
-Detailed multi-scale benchmarks (1B, 3B, 7B, 30B) against 2026 architectures (Qwen3.5, Muse-Glimmer-30B Meta, Gemma4) are provided in [SCALING.md](SCALING.md).
+Detailed multi-scale benchmarks (1B, 3B, 7B, 30B) against 2026 architectures (Qwen3.5, Muse-Glimmer-30B, Gemma4) are provided in [SCALING.md](SCALING.md).
 
 ---
 
