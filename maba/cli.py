@@ -14,7 +14,6 @@ def main():
     parser = argparse.ArgumentParser(description="Maba v1 Architecture CLI")
     sub = parser.add_subparsers(dest="command")
 
-    # Generate
     p_gen = sub.add_parser("generate", help="Generate text")
     p_gen.add_argument("--prompt", type=str, default="def fib(n):", help="Input prompt")
     p_gen.add_argument("--max-tokens", type=int, default=32, help="Max new tokens")
@@ -23,7 +22,6 @@ def main():
     p_gen.add_argument("--device", type=str, default="auto", help="Device (auto/tpu/cuda/mps/cpu)")
     p_gen.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B", "30B"], help="Model scale preset")
 
-    # Train
     p_tr = sub.add_parser("train", help="Run training")
     p_tr.add_argument("--steps", type=int, default=30, help="Training steps")
     p_tr.add_argument("--batch-size", type=int, default=2, help="Batch size")
@@ -35,17 +33,14 @@ def main():
     p_tr.add_argument("--multi-core", action="store_true", help="Launch multi-core TPU training using xmp.spawn")
     p_tr.add_argument("--output", type=str, default="maba_checkpoint.pt", help="Output checkpoint path")
 
-    # Export
     p_exp = sub.add_parser("export", help="Export weights to binary format for C++")
     p_exp.add_argument("--checkpoint", type=str, default=None, help="Input PyTorch checkpoint")
     p_exp.add_argument("--output", type=str, default="maba_weights.bin", help="Output binary file")
     p_exp.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B", "30B"], help="Model scale preset")
 
-    # Params
     p_par = sub.add_parser("params", help="Audit model parameter topology")
     p_par.add_argument("--scale", type=str, default="100M", choices=["100M", "1B", "3B", "7B", "30B"], help="Model scale preset")
 
-    # Hardware
     p_hw = sub.add_parser("hardware", help="Inspect hardware accelerator and TPU environment")
 
     args = parser.parse_args()

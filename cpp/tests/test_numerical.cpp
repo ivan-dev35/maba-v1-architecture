@@ -22,6 +22,14 @@ int main(int argc, char** argv) {
     std::string model_path = (argc > 1) ? argv[1] : find_file("maba_ref.bin");
     std::string ref_logits_path = (argc > 2) ? argv[2] : find_file("ref_logits.bin");
 
+    std::ifstream f_check(model_path);
+    if (!f_check.good()) {
+        int r = std::system("python3 generate_reference.py || python3 ../generate_reference.py || python3 ../../generate_reference.py");
+        (void)r;
+        model_path = find_file("maba_ref.bin");
+        ref_logits_path = find_file("ref_logits.bin");
+    }
+
     maba::Model model;
     if (!model.load_weights(model_path)) {
         std::cerr << "Failed to load " << model_path << std::endl;

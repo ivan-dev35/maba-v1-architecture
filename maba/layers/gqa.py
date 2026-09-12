@@ -62,8 +62,13 @@ class GQA(nn.Module):
         scale = 1.0 / math.sqrt(self.d_head)
         if mask is not None:
             attn = F.scaled_dot_product_attention(q, k_att, v_att, attn_mask=mask, scale=scale)
-        elif kv is None and L > 1:
-            attn = F.scaled_dot_product_attention(q, k_att, v_att, is_causal=True, scale=scale)
+        elif L > 1:
+            if kv is None:
+                attn = F.scaled_dot_product_attention(q, k_att, v_att, is_causal=True, scale=scale)
+            else:
+                k_len = k_att.shape[2]
+                c_mask = torch.ones(L, k_len, device=q.device, dtype=torch.bool).tril(diagonal=k_len - L)
+                attn = F.scaled_dot_product_attention(q, k_att, v_att, attn_mask=c_mask, scale=scale)
         else:
             attn = F.scaled_dot_product_attention(q, k_att, v_att, is_causal=False, scale=scale)
 

@@ -69,6 +69,11 @@ inline float dot_product_simd(const float* a, const float* b, size_t K) {
         __m256 vb1 = _mm256_loadu_ps(b + k + 8);
         sum1 = _mm256_fmadd_ps(va1, vb1, sum1);
     }
+    for (; k + 8 <= K; k += 8) {
+        __m256 va = _mm256_loadu_ps(a + k);
+        __m256 vb = _mm256_loadu_ps(b + k);
+        sum0 = _mm256_fmadd_ps(va, vb, sum0);
+    }
     sum0 = _mm256_add_ps(sum0, sum1);
     float buf[8];
     _mm256_storeu_ps(buf, sum0);

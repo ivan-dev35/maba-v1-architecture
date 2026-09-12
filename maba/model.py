@@ -96,11 +96,12 @@ class Model(nn.Module):
         cos, sin = self.rotary_emb(h, L, pos=pos)
 
         mask = None
-        new_states = [] if return_states else None
+        ret_st = return_states or (states is not None)
+        new_states = [] if ret_st else None
         for i, layer in enumerate(self.layers):
             st = states[i] if states is not None else None
-            h, updated_st = layer(h, cos=cos, sin=sin, mask=mask, block_states=st, return_states=return_states)
-            if return_states:
+            h, updated_st = layer(h, cos=cos, sin=sin, mask=mask, block_states=st, return_states=ret_st)
+            if ret_st:
                 new_states.append(updated_st)
 
         normed_h = self.final_norm(h)
@@ -120,9 +121,9 @@ class Model(nn.Module):
                         ignore_index=-100
                     )
                 else:
-                    main_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                    main_loss = (shift_logits.sum() * 0.0) if shift_logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
             else:
-                main_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                main_loss = (logits.sum() * 0.0) if logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
             if L > 2:
                 next_toks = labels[..., 1:].clamp(min=0)

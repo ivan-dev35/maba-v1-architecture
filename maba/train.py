@@ -218,7 +218,6 @@ def train_tpu_multicore(
     ckpt_path: str = "maba_checkpoint.pt",
     scale: str = "100M"
 ):
-    """Launches parallel distributed training across multiple TPU cores."""
     if not is_tpu_available():
         raise RuntimeError(
             "Multi-core TPU training requested, but torch_xla is not installed or no TPU hardware is accessible."

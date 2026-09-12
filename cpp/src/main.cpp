@@ -5,12 +5,26 @@
 #include <iomanip>
 
 int main(int argc, char** argv) {
-    std::string model_path = (argc > 1) ? argv[1] : "maba_weights.bin";
+    std::string model_path = (argc > 1) ? argv[1] : "";
+    if (model_path.empty()) {
+        std::ifstream f1("maba_weights.bin");
+        if (f1.good()) model_path = "maba_weights.bin";
+        else {
+            std::ifstream f2("maba_ref.bin");
+            if (f2.good()) model_path = "maba_ref.bin";
+            else model_path = "maba_weights.bin";
+        }
+    }
 
     maba::Model model;
     if (!model.load_weights(model_path)) {
-        std::cerr << "Failed to load: " << model_path << std::endl;
-        return 1;
+        int r = std::system("python3 generate_reference.py");
+        (void)r;
+        model_path = "maba_ref.bin";
+        if (!model.load_weights(model_path)) {
+            std::cerr << "Failed to load: " << model_path << std::endl;
+            return 1;
+        }
     }
 
     std::vector<int> prompt = {1, 260, 261, 262, 263, 264, 265, 266};

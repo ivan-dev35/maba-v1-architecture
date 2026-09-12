@@ -15,7 +15,6 @@ def is_tpu_available() -> bool:
     try:
         import torch_xla
         import torch_xla.core.xla_model as xm
-        # Probe device availability
         dev = xm.xla_device()
         _TPU_AVAILABLE = True
     except Exception:
@@ -75,13 +74,11 @@ def get_dtype(device: torch.device, requested: Optional[str] = None) -> torch.dt
     return torch.float32
 
 def mark_step():
-    """Forces execution of queued XLA computation graph on TPU."""
     if is_tpu_available():
         import torch_xla.core.xla_model as xm
         xm.mark_step()
 
 def optimizer_step(optimizer, barrier: bool = True):
-    """Executes optimizer step with cross-replica reduction on TPU."""
     if is_tpu_available():
         import torch_xla.core.xla_model as xm
         xm.optimizer_step(optimizer, barrier=barrier)
@@ -118,7 +115,6 @@ def clip_grad_norm(parameters, max_norm: float = 1.0) -> torch.Tensor:
     return torch.nn.utils.clip_grad_norm_(params, max_norm)
 
 def wrap_loader(dataloader, device: torch.device):
-    """Wraps PyTorch DataLoader with MpDeviceLoader for TPU asynchronous prefetching."""
     if device.type == "xla":
         try:
             from torch_xla.distributed.parallel_loader import MpDeviceLoader
@@ -128,7 +124,6 @@ def wrap_loader(dataloader, device: torch.device):
     return dataloader
 
 def is_master_process() -> bool:
-    """Returns True if current process is rank 0 or not running in TPU distributed mode."""
     if is_tpu_available():
         try:
             import torch_xla.core.xla_model as xm
@@ -138,12 +133,10 @@ def is_master_process() -> bool:
     return True
 
 def master_print(*args, **kwargs):
-    """Prints message only on rank 0."""
     if is_master_process():
         print(*args, **kwargs)
 
 def rendezvous(tag: str):
-    """Performs barrier synchronization across all TPU workers."""
     if is_tpu_available():
         try:
             import torch_xla.core.xla_model as xm
@@ -152,7 +145,6 @@ def rendezvous(tag: str):
             pass
 
 def get_tpu_info() -> Dict[str, Any]:
-    """Returns detailed diagnostic dictionary of TPU environment."""
     info = {
         "available": is_tpu_available(),
         "device": None,
@@ -176,7 +168,6 @@ def get_tpu_info() -> Dict[str, Any]:
     return info
 
 def get_hardware_status() -> Dict[str, Any]:
-    """Returns full system hardware accelerator status."""
     dev = get_device("auto")
     opt_dtype = get_dtype(dev)
     tpu_info = get_tpu_info()

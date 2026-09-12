@@ -5,9 +5,9 @@
 namespace maba {
 
 struct FFNW {
-    Tensor w_gate; // (1728, 640)
-    Tensor w_up;   // (1728, 640)
-    Tensor w_down; // (640, 1728)
+    Tensor w_gate;
+    Tensor w_up;
+    Tensor w_down;
 };
 
 using SwiGLUWeights = FFNW;
@@ -18,7 +18,7 @@ inline void ffn_fwd(
     const FFNW& w
 ) {
     size_t L = x.shape[0];
-    size_t d_ffn = 1728;
+    size_t d_ffn = !w.w_gate.shape.empty() ? w.w_gate.shape[0] : 1728;
 
     Tensor gate, up;
     matmul_transB(x, w.w_gate, gate);

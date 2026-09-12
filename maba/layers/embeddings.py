@@ -23,7 +23,6 @@ class EmbHead(nn.Module):
         comp = self.w_proj_out(h)
         return F.linear(comp, self.w_emb.weight)
 
-    # Aliases
     get_factor_embedding = factor_emb
     forward_input = forward_in
     forward_output = forward_out

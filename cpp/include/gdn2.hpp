@@ -36,11 +36,12 @@ struct GDN2State {
         std::fill(conv_buf_v.begin(), conv_buf_v.end(), 0.0f);
     }
 
-    void init(size_t H, size_t d, size_t D) {
+    void init(size_t H, size_t d, size_t D, size_t k_size = 4) {
+        size_t buf_k = k_size > 1 ? (k_size - 1) : 0;
         if (S.size() != H * d * d) S.assign(H * d * d, 0.0f);
-        if (conv_buf_q.size() != D * 3) conv_buf_q.assign(D * 3, 0.0f);
-        if (conv_buf_k.size() != D * 3) conv_buf_k.assign(D * 3, 0.0f);
-        if (conv_buf_v.size() != D * 3) conv_buf_v.assign(D * 3, 0.0f);
+        if (conv_buf_q.size() != D * buf_k) conv_buf_q.assign(D * buf_k, 0.0f);
+        if (conv_buf_k.size() != D * buf_k) conv_buf_k.assign(D * buf_k, 0.0f);
+        if (conv_buf_v.size() != D * buf_k) conv_buf_v.assign(D * buf_k, 0.0f);
     }
 };
 
@@ -54,21 +55,23 @@ inline void conv1d_fwd(
     size_t L = in.shape[0];
     size_t D = in.shape[1];
     out.resize({L, D});
+    size_t k_size = (conv_w.numel() > 0 && D > 0) ? (conv_w.numel() / D) : 4;
+    int buf_k = (int)k_size - 1;
 
     for (size_t t = 0; t < L; ++t) {
         for (size_t c = 0; c < D; ++c) {
             float sum = 0.0f;
-            const float* w = &conv_w.data[c * 4];
-            for (int k = 0; k < 4; ++k) {
-                int lag = 3 - k;
+            const float* w = &conv_w.data[c * k_size];
+            for (size_t k = 0; k < k_size; ++k) {
+                int lag = buf_k - (int)k;
                 float val = 0.0f;
                 int pos = (int)t - lag;
                 if (pos >= 0) {
                     val = in.at(pos, c);
-                } else if (!state_buf.empty()) {
+                } else if (!state_buf.empty() && buf_k > 0) {
                     int buf_idx = (int)state_buf.size() / D + pos;
-                    if (buf_idx >= 0 && buf_idx < 3) {
-                        val = state_buf[c * 3 + buf_idx];
+                    if (buf_idx >= 0 && buf_idx < buf_k) {
+                        val = state_buf[c * buf_k + buf_idx];
                     }
                 }
                 sum += val * w[k];
@@ -77,24 +80,21 @@ inline void conv1d_fwd(
         }
     }
 
-    if (update_state && L > 0) {
-        if (L >= 3) {
+    if (update_state && L > 0 && buf_k > 0) {
+        if ((int)L >= buf_k) {
             for (size_t c = 0; c < D; ++c) {
-                for (int i = 0; i < 3; ++i) {
-                    state_buf[c * 3 + i] = in.at(L - 3 + i, c);
+                for (int i = 0; i < buf_k; ++i) {
+                    state_buf[c * buf_k + i] = in.at(L - buf_k + i, c);
                 }
             }
         } else {
             for (size_t c = 0; c < D; ++c) {
-                float old0 = state_buf[c * 3 + 0];
-                float old1 = state_buf[c * 3 + 1];
-                float old2 = state_buf[c * 3 + 2];
-                for (int i = 0; i < 3; ++i) {
+                std::vector<float> old(buf_k);
+                for (int i = 0; i < buf_k; ++i) old[i] = state_buf[c * buf_k + i];
+                for (int i = 0; i < buf_k; ++i) {
                     int idx = (int)L + i;
-                    if (idx == 0) state_buf[c * 3 + i] = old0;
-                    else if (idx == 1) state_buf[c * 3 + i] = old1;
-                    else if (idx == 2) state_buf[c * 3 + i] = old2;
-                    else state_buf[c * 3 + i] = in.at(idx - 3, c);
+                    if (idx < buf_k) state_buf[c * buf_k + i] = old[idx];
+                    else state_buf[c * buf_k + i] = in.at(idx - buf_k, c);
                 }
             }
         }
@@ -118,7 +118,8 @@ inline void gdn2_fwd(
     size_t H = (w.H > 0) ? w.H : (w.gate_alpha.shape.empty() ? 10 : w.gate_alpha.shape[0]);
     size_t d = (w.d > 0) ? w.d : (D / H);
 
-    state.init(H, d, D);
+    size_t k_size = (w.conv_q.numel() > 0 && D > 0) ? (w.conv_q.numel() / D) : 4;
+    state.init(H, d, D, k_size);
 
     Tensor q_proj, k_proj, v_proj;
     matmul_transB(x, w.q_proj, q_proj);
