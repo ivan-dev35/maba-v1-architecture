@@ -36,6 +36,9 @@ pipeline_tag: text-generation
 
 </div>
 
+> [!CAUTION]
+> **MANDATORY UPGRADE TO UPDATE 2**: All deployments, fine-tuning scripts, and evaluations must immediately upgrade to Update 2. The previous release contained critical instability bugs: silent context loss during autoregressive KV-cache decoding, causal token leakage during chunked speculative evaluation, fatal autograd failure on masked batches, and hardcoded C++ engine dimensions. All defects are resolved in Update 2.
+
 ---
 
 ## Architecture
@@ -84,11 +87,11 @@ Detailed multi-scale benchmarks (1B, 3B, 7B, 30B) against 2026 architectures (Qw
 | Tied LM-Head | Tied with W_emb.T | 0 | 0.00% |
 | **Subtotal: Embeddings** | | **4,358,144** | **4.31%** |
 | 15 GDN-2 Blocks | 15 x (Q,K,V,O + Conv + Gates + SwiGLU + Norms) | 74,803,200 | 73.93% |
-| 5 GQA Blocks | 5 x (Q,K,V,O + QK-Norm + SwiGLU + Norms) | 21,529,600 | 21.28% |
-| **Subtotal: Core** | | **96,332,800** | **95.21%** |
+| 5 GQA Blocks | 5 x (Q,K,V,O + QK-Norm + SwiGLU + Norms) | 21,523,840 | 21.27% |
+| **Subtotal: Core** | | **96,327,040** | **95.21%** |
 | Final RMSNorm | 640 | 640 | 0.001% |
 | Auxiliary MTP Head (k=2) | (640 + 128) x 640 + 640 | 492,160 | 0.49% |
-| **Total** | | **101,183,744** | **100.0%** |
+| **Total** | | **101,177,984** | **100.0%** |
 
 ---
 
@@ -273,6 +276,19 @@ python3 -m maba.cli train --device tpu --multi-core --cores 8 --steps 500 --batc
 - **Asynchronous Prefetching**: DataLoaders are automatically wrapped with `MpDeviceLoader` for non-blocking host-to-device transfers.
 - **Cross-Replica Reduction**: `HybridOpt.step(barrier=True)` performs all-reduce across TPU cores and synchronizes lazy execution graphs with `mark_step()`.
 - **Rank-0 Logging**: State checkpoints and metrics are serialized exclusively on the master ordinal.
+
+---
+
+## Release Notes
+
+### Update 2 (September 2026)
+- **Mandatory Upgrade Notice**: Resolves critical instability and multiple functional bugs present in prior releases.
+- **Autoregressive Cache**: Fixed silent context reset in autoregressive generation where KV and recurrent states were dropped on prefill.
+- **Causal Masking**: Fixed causal leakage in GQA when evaluating multi-token chunks with cached states.
+- **Autograd Continuity**: Preserved autograd graph connectivity on edge-case training batches (L=1 or all-masked targets).
+- **Dynamic C++ Engine**: Removed all hardcoded tensor dimensions from C++ runtime; full dynamic support for 100M to 30B configurations.
+- **C++ Decode Optimization**: Eliminated heap allocations in Conv1D shift loop and gated residuals, reducing CPU decode latency.
+- **Topology Parity**: Synchronized parameter accounting for per-head QK-norm across all preset documentation.
 
 ---
 

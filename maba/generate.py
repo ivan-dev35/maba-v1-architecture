@@ -12,6 +12,9 @@ def spec_gen(
     max_new_tokens: int = 40,
     device: str = "cpu"
 ) -> Tuple[str, float, int]:
+    if max_new_tokens <= 0:
+        return prompt, 0.0, 0
+
     model.eval()
     inp = torch.tensor([tokenizer.encode(prompt, add_bos=True)], device=device)
     cur = inp.clone()

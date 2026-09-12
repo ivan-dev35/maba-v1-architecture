@@ -194,6 +194,14 @@ public:
         Tensor& normed_h,
         size_t start_pos = 0
     ) {
+        if (token_ids.empty()) {
+            size_t vocab_size = emb_w.w_emb.shape.empty() ? 0 : emb_w.w_emb.shape[0];
+            size_t dim = emb_w.w_proj_in.shape.empty() ? 0 : emb_w.w_proj_in.shape[0];
+            logits.resize(std::vector<size_t>{0, vocab_size});
+            normed_h.resize(std::vector<size_t>{0, dim});
+            return;
+        }
+
         Tensor h;
         factorized_embed(h, token_ids, emb_w);
 
@@ -237,6 +245,8 @@ public:
 };
 
 using Apex100MModel = Model;
+using MabaModel = Model;
+using MabaLM = Model;
 
 } // namespace maba
 

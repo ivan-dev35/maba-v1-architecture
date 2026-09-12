@@ -172,6 +172,18 @@ inline void gated_residual(Tensor& out, const Tensor& residual, const Tensor& su
     size_t num_rows = residual.numel() / D;
     out.resize(residual.shape);
 
+    if (num_rows == 1) {
+        const float* res_ptr = residual.data.data();
+        const float* sub_ptr = sublayer.data.data();
+        float* out_ptr = out.data.data();
+        #pragma omp simd
+        for (size_t d = 0; d < D; ++d) {
+            float g = sigmoid(gate.data[d]);
+            out_ptr[d] = g * res_ptr[d] + (1.0f - g) * sub_ptr[d];
+        }
+        return;
+    }
+
     std::vector<float> sig_g(D);
     #pragma omp simd
     for (size_t d = 0; d < D; ++d) {

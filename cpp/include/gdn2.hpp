@@ -69,7 +69,7 @@ inline void conv1d_fwd(
                 if (pos >= 0) {
                     val = in.at(pos, c);
                 } else if (!state_buf.empty() && buf_k > 0) {
-                    int buf_idx = (int)state_buf.size() / D + pos;
+                    int buf_idx = buf_k + pos;
                     if (buf_idx >= 0 && buf_idx < buf_k) {
                         val = state_buf[c * buf_k + buf_idx];
                     }
@@ -88,8 +88,10 @@ inline void conv1d_fwd(
                 }
             }
         } else {
+            std::vector<float> old_dyn;
+            float old_stk[16];
+            float* old = (buf_k <= 16) ? old_stk : (old_dyn.resize(buf_k), old_dyn.data());
             for (size_t c = 0; c < D; ++c) {
-                std::vector<float> old(buf_k);
                 for (int i = 0; i < buf_k; ++i) old[i] = state_buf[c * buf_k + i];
                 for (int i = 0; i < buf_k; ++i) {
                     int idx = (int)L + i;

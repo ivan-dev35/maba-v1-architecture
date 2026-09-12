@@ -99,10 +99,10 @@ inline void gqa_fwd(
 
     for (size_t t = 0; t < L; ++t) {
         size_t query_pos = start_pos + t;
+        std::vector<float> scores(query_pos + 1);
         for (size_t h = 0; h < H_q; ++h) {
             size_t kv_h = h / group_ratio;
             const float* q_vec = &q_normed.data[t * D + h * d];
-            std::vector<float> scores(query_pos + 1);
             float max_score = -1e9f;
 
             for (size_t key_t = 0; key_t <= query_pos; ++key_t) {

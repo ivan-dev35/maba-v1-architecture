@@ -81,6 +81,15 @@ class Model(nn.Module):
         B, L = input_ids.shape
         dev = input_ids.device
 
+        if L == 0:
+            return {
+                "logits": torch.empty((B, 0, self.config.vocab_size), device=dev, dtype=self.embeddings.w_emb.weight.dtype),
+                "mtp_logits": None,
+                "hidden_states": torch.empty((B, 0, self.config.dim), device=dev, dtype=self.embeddings.w_emb.weight.dtype),
+                "loss": None,
+                "states": states
+            }
+
         if start_pos is None and states is not None:
             for s in states:
                 if s:
@@ -139,9 +148,9 @@ class Model(nn.Module):
                         ignore_index=-100
                     )
                 else:
-                    mtp_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                    mtp_loss = (shift_mtp_logits.sum() * 0.0) if shift_mtp_logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
             else:
-                mtp_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
+                mtp_loss = (logits.sum() * 0.0) if logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
             total_loss = main_loss + self.config.mtp_weight * mtp_loss
             loss = {
@@ -168,6 +177,9 @@ class Model(nn.Module):
         use_cache: bool = True,
         **kwargs
     ) -> torch.Tensor:
+        if max_new_tokens <= 0:
+            return input_ids.clone()
+
         self.eval()
         _, prompt_len = input_ids.shape
         gen = input_ids.clone()
