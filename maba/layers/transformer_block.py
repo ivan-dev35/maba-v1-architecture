@@ -46,9 +46,10 @@ class Block(nn.Module):
         cos: Optional[torch.Tensor] = None,
         sin: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None,
-        st: Optional[Dict[str, Any]] = None
+        st: Optional[Dict[str, Any]] = None,
+        return_states: bool = False
     ) -> Tuple[torch.Tensor, Optional[Dict[str, Any]]]:
-        nst = {} if st is not None else None
+        nst = {} if (return_states or st is not None) else None
         h_norm = self.input_norm(h)
 
         if self.is_gqa:
@@ -82,12 +83,13 @@ class Block(nn.Module):
         cos: Optional[torch.Tensor] = None,
         sin: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None,
-        block_states: Optional[List[Dict[str, Any]]] = None
+        block_states: Optional[List[Dict[str, Any]]] = None,
+        return_states: bool = False
     ) -> Tuple[torch.Tensor, Optional[List[Dict[str, Any]]]]:
-        new_states = [] if block_states is not None else None
+        new_states = [] if (return_states or block_states is not None) else None
         for p in range(self.n_passes):
             st = block_states[p] if block_states is not None else None
-            h, updated_st = self._pass(h, cos=cos, sin=sin, mask=mask, st=st)
+            h, updated_st = self._pass(h, cos=cos, sin=sin, mask=mask, st=st, return_states=return_states)
             if new_states is not None:
                 new_states.append(updated_st)
         return h, new_states

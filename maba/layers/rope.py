@@ -10,22 +10,28 @@ class RotaryEmbedding(nn.Module):
         self.theta = theta
         inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer("inv_freq", inv_freq, persistent=False)
-        self._build_cache(max_len)
+        self._cos_cached = None
+        self._sin_cached = None
 
-    def _build_cache(self, n: int):
+    def _build_cache(self, n: int, dev: torch.device):
         self.max_len = n
-        t = torch.arange(n, dtype=torch.float32, device=self.inv_freq.device)
-        freqs = torch.outer(t, self.inv_freq)
+        if dev.type == "meta":
+            self._cos_cached = torch.empty((n, self.dim), device=dev, dtype=torch.float32)
+            self._sin_cached = torch.empty((n, self.dim), device=dev, dtype=torch.float32)
+            return
+        t = torch.arange(n, dtype=torch.float32, device=dev)
+        inv = self.inv_freq.to(dev)
+        freqs = torch.outer(t, inv)
         emb = torch.cat((freqs, freqs), dim=-1)
-        self.register_buffer("cos_cached", emb.cos(), persistent=False)
-        self.register_buffer("sin_cached", emb.sin(), persistent=False)
+        self._cos_cached = emb.cos()
+        self._sin_cached = emb.sin()
 
     def forward(self, x: torch.Tensor, seq_len: int, pos: int = 0) -> Tuple[torch.Tensor, torch.Tensor]:
         tot = pos + seq_len
-        if tot > self.max_len or self.cos_cached.device != x.device:
-            self._build_cache(max(tot, self.max_len))
-        cos = self.cos_cached[pos:tot].to(dtype=x.dtype, device=x.device)
-        sin = self.sin_cached[pos:tot].to(dtype=x.dtype, device=x.device)
+        if self._cos_cached is None or tot > self.max_len or self._cos_cached.device != x.device:
+            self._build_cache(max(tot, self.max_len), x.device)
+        cos = self._cos_cached[pos:tot].to(dtype=x.dtype)
+        sin = self._sin_cached[pos:tot].to(dtype=x.dtype)
         return cos, sin
 
 def rotate_half(x: torch.Tensor) -> torch.Tensor:

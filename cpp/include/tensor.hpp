@@ -33,7 +33,7 @@ struct Tensor {
         shape = s;
         size_t total = 1;
         for (auto d : s) total *= d;
-        data.assign(total, 0.0f);
+        data.resize(total);
     }
 
     float* raw() { return data.data(); }
@@ -167,14 +167,21 @@ inline void gated_residual(Tensor& out, const Tensor& residual, const Tensor& su
     size_t num_rows = residual.numel() / D;
     out.resize(residual.shape);
 
+    std::vector<float> sig_g(D);
+    #pragma omp simd
+    for (size_t d = 0; d < D; ++d) {
+        sig_g[d] = sigmoid(gate.data[d]);
+    }
+
     #pragma omp parallel for if (num_rows > 16)
     for (size_t r = 0; r < num_rows; ++r) {
         const float* res_ptr = &residual.data[r * D];
         const float* sub_ptr = &sublayer.data[r * D];
         float* out_ptr = &out.data[r * D];
 
+        #pragma omp simd
         for (size_t d = 0; d < D; ++d) {
-            float g = sigmoid(gate.data[d]);
+            float g = sig_g[d];
             out_ptr[d] = g * res_ptr[d] + (1.0f - g) * sub_ptr[d];
         }
     }

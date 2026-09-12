@@ -88,9 +88,34 @@ def optimizer_step(optimizer, barrier: bool = True):
     else:
         optimizer.step()
 
+def reduce_gradients(optimizer):
+    if is_tpu_available():
+        try:
+            import torch_xla.core.xla_model as xm
+            if xm.xrt_world_size() > 1:
+                if hasattr(optimizer, "muon") or hasattr(optimizer, "adamw"):
+                    if getattr(optimizer, "muon", None):
+                        xm.reduce_gradients(optimizer.muon)
+                    if getattr(optimizer, "adamw", None):
+                        xm.reduce_gradients(optimizer.adamw)
+                else:
+                    xm.reduce_gradients(optimizer)
+        except Exception:
+            pass
+
 def clip_grad_norm(parameters, max_norm: float = 1.0) -> torch.Tensor:
-    """Clips gradient norms across parameters, supporting TPU and CPU/GPU."""
-    return torch.nn.utils.clip_grad_norm_(parameters, max_norm)
+    params = list(parameters)
+    if is_tpu_available():
+        try:
+            import torch_xla.core.xla_model as xm
+            if xm.xrt_world_size() > 1:
+                grads = [p.grad for p in params if p.grad is not None]
+                if grads:
+                    for g in grads:
+                        xm.all_reduce(xm.REDUCE_SUM, g, scale=1.0 / xm.xrt_world_size())
+        except Exception:
+            pass
+    return torch.nn.utils.clip_grad_norm_(params, max_norm)
 
 def wrap_loader(dataloader, device: torch.device):
     """Wraps PyTorch DataLoader with MpDeviceLoader for TPU asynchronous prefetching."""

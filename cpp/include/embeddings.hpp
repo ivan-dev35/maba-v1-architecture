@@ -6,9 +6,9 @@
 namespace maba {
 
 struct EmbW {
-    Tensor w_emb;       // (32768, 128)
-    Tensor w_proj_in;   // (640, 128)
-    Tensor w_proj_out;  // (128, 640)
+    Tensor w_emb;
+    Tensor w_proj_in;
+    Tensor w_proj_out;
 };
 
 using EmbeddingWeights = EmbW;
@@ -19,12 +19,13 @@ inline void factorized_embed(
     const EmbW& w
 ) {
     size_t L = token_ids.size();
-    size_t d_emb = 128;
+    size_t vocab_size = w.w_emb.shape[0];
+    size_t d_emb = w.w_emb.shape[1];
 
     Tensor factor_emb({L, d_emb});
     for (size_t t = 0; t < L; ++t) {
         int tid = token_ids[t];
-        if (tid < 0 || tid >= 32768) tid = 0;
+        if (tid < 0 || (size_t)tid >= vocab_size) tid = 0;
         const float* src = &w.w_emb.data[tid * d_emb];
         std::memcpy(&factor_emb.data[t * d_emb], src, d_emb * sizeof(float));
     }

@@ -166,7 +166,8 @@ class Config:
             + 2 * self.dim * (self.n_kv_heads * self.d_head)
             + self.dim * self.dim
             + 3 * self.dim * self.d_ffn
-            + 8 * self.dim
+            + 6 * self.dim
+            + 2 * self.d_head
         )
 
         n_gqa = sum(1 for t in self.layer_types if t == 1)

@@ -86,8 +86,8 @@ class TestComponents(unittest.TestCase):
         cos, sin = rope(x, 8)
         out, (kc, vc) = gqa(x, cos, sin)
         self.assertEqual(out.shape, (2, 8, 640))
-        self.assertEqual(kc.shape, (2, 10, 8, 64))
-        self.assertEqual(vc.shape, (2, 10, 8, 64))
+        self.assertEqual(kc.shape, (2, 2, 8, 64))
+        self.assertEqual(vc.shape, (2, 2, 8, 64))
 
     def test_block(self):
         bgdn = Block(dim=640, d_ffn=1728, is_gqa=False, n_passes=2)

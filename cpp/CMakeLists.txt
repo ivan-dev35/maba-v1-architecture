@@ -18,4 +18,9 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(maba_cli PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+add_executable(test_numerical tests/test_numerical.cpp)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(test_numerical PRIVATE OpenMP::OpenMP_CXX)
+endif()
+
 

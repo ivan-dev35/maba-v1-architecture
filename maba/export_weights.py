@@ -4,7 +4,7 @@ import torch
 from .config import Config
 from .model import Model
 
-MAGIC = 0x4D414241  # "MABA"
+MAGIC = 0x4D414241
 
 def export_bin(model: Model, out_path: str):
     cfg = model.config
@@ -13,15 +13,16 @@ def export_bin(model: Model, out_path: str):
 
     with open(out_path, "wb") as f:
         hdr = struct.pack(
-            "<IIIIIIIII",
+            "<IIIIIIIIII",
             MAGIC,
             cfg.vocab_size,
-            cfg.d_emb,
             cfg.dim,
-            cfg.n_layers,
-            cfg.d_ffn,
+            cfg.d_emb,
+            cfg.d_head,
             cfg.n_heads,
             cfg.n_kv_heads,
+            cfg.n_layers,
+            cfg.d_ffn,
             len(sd)
         )
         f.write(hdr)

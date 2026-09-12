@@ -23,7 +23,18 @@ int main(int argc, char** argv) {
     double prefill_ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
     std::cout << "Prefill (" << prompt.size() << " toks): " << std::fixed << std::setprecision(2) << prefill_ms << " ms" << std::endl;
 
-    int cur_token = 260;
+    size_t last_pos = prompt.size() - 1;
+    size_t vocab_size = model.vocab_size;
+    float max_p_logit = -1e9f;
+    int cur_token = 0;
+    for (size_t v = 0; v < vocab_size; ++v) {
+        float val = logits.at(last_pos, v);
+        if (val > max_p_logit) {
+            max_p_logit = val;
+            cur_token = (int)v;
+        }
+    }
+
     int gen_steps = 10;
     auto tg0 = std::chrono::high_resolution_clock::now();
     for (int s = 0; s < gen_steps; ++s) {
@@ -32,11 +43,11 @@ int main(int argc, char** argv) {
 
         float max_logit = -1e9f;
         int best_token = 0;
-        for (int v = 0; v < 32768; ++v) {
+        for (size_t v = 0; v < vocab_size; ++v) {
             float val = logits.at(0, v);
             if (val > max_logit) {
                 max_logit = val;
-                best_token = v;
+                best_token = (int)v;
             }
         }
         cur_token = best_token;

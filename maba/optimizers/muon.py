@@ -65,7 +65,7 @@ class Muon(Optimizer):
 
                 if p.ndim == 2:
                     upd = newton_schulz5(buf, steps=steps, eps=eps)
-                    rms = (torch.linalg.vector_norm(p) / (p.numel() ** 0.5)).clamp(min=1e-3)
+                    rms = (torch.linalg.vector_norm(p.float()) / (p.numel() ** 0.5)).clamp(min=1e-3)
                     upd = upd * rms
                 else:
                     upd = buf

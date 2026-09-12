@@ -96,14 +96,10 @@ class Model(nn.Module):
         cos, sin = self.rotary_emb(h, L, pos=pos)
 
         mask = None
-        if L > 1 and states is None:
-            mask = torch.full((L, L), float("-inf"), device=dev)
-            mask = torch.triu(mask, diagonal=1).unsqueeze(0).unsqueeze(0)
-
         new_states = [] if return_states else None
         for i, layer in enumerate(self.layers):
             st = states[i] if states is not None else None
-            h, updated_st = layer(h, cos=cos, sin=sin, mask=mask, block_states=st)
+            h, updated_st = layer(h, cos=cos, sin=sin, mask=mask, block_states=st, return_states=return_states)
             if return_states:
                 new_states.append(updated_st)
 
@@ -114,13 +110,19 @@ class Model(nn.Module):
         loss = None
 
         if labels is not None:
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = labels[..., 1:].contiguous()
-            main_loss = F.cross_entropy(
-                shift_logits.view(-1, self.config.vocab_size),
-                shift_labels.view(-1),
-                ignore_index=-100
-            )
+            if L > 1:
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = labels[..., 1:].contiguous()
+                if (shift_labels != -100).any():
+                    main_loss = F.cross_entropy(
+                        shift_logits.view(-1, self.config.vocab_size),
+                        shift_labels.view(-1),
+                        ignore_index=-100
+                    )
+                else:
+                    main_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
+            else:
+                main_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
             if L > 2:
                 next_toks = labels[..., 1:].clamp(min=0)
@@ -129,13 +131,16 @@ class Model(nn.Module):
                 shift_mtp_logits = mtp_logits[..., :-1, :].contiguous()
                 shift_mtp_labels = labels[..., 2:].contiguous().clone()
                 shift_mtp_labels[labels[..., 1:-1] == -100] = -100
-                mtp_loss = F.cross_entropy(
-                    shift_mtp_logits.view(-1, self.config.vocab_size),
-                    shift_mtp_labels.view(-1),
-                    ignore_index=-100
-                )
+                if (shift_mtp_labels != -100).any():
+                    mtp_loss = F.cross_entropy(
+                        shift_mtp_logits.view(-1, self.config.vocab_size),
+                        shift_mtp_labels.view(-1),
+                        ignore_index=-100
+                    )
+                else:
+                    mtp_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
             else:
-                mtp_loss = torch.tensor(0.0, device=dev)
+                mtp_loss = torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
             total_loss = main_loss + self.config.mtp_weight * mtp_loss
             loss = {

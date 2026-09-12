@@ -37,7 +37,7 @@ struct BlockState {
 
     void reset() {
         for (int p = 0; p < 2; ++p) {
-            gdn_state[p] = GDN2State();
+            gdn_state[p].reset();
             gqa_cache[p] = GQACache();
         }
     }
@@ -47,6 +47,15 @@ using BlockRuntimeState = BlockState;
 
 class Model {
 public:
+    uint32_t vocab_size = 32768;
+    uint32_t dim = 640;
+    uint32_t d_emb = 128;
+    uint32_t d_head = 64;
+    uint32_t num_heads = 10;
+    uint32_t num_kv_heads = 2;
+    uint32_t num_layers = 20;
+    uint32_t d_ffn = 1728;
+
     EmbW emb_w;
     std::vector<BlockW> blocks;
     Tensor final_norm;
@@ -54,9 +63,9 @@ public:
     std::vector<BlockState> block_states;
 
     Model() {
-        blocks.resize(20);
-        block_states.resize(20);
-        for (size_t i = 0; i < 20; ++i) {
+        blocks.resize(num_layers);
+        block_states.resize(num_layers);
+        for (size_t i = 0; i < num_layers; ++i) {
             blocks[i].is_gqa = ((i % 4) == 3);
         }
     }
@@ -74,21 +83,35 @@ public:
             return false;
         }
 
-        uint32_t magic, vocab_size, d_emb, d_model, num_layers, d_ffn, num_heads, num_kv_heads, num_tensors;
+        uint32_t magic, vocab_sz, model_dim, model_d_emb, head_dim, n_h, n_kv_h, n_l, ffn_dim, num_tensors;
         f.read(reinterpret_cast<char*>(&magic), 4);
-        f.read(reinterpret_cast<char*>(&vocab_size), 4);
-        f.read(reinterpret_cast<char*>(&d_emb), 4);
-        f.read(reinterpret_cast<char*>(&d_model), 4);
-        f.read(reinterpret_cast<char*>(&num_layers), 4);
-        f.read(reinterpret_cast<char*>(&d_ffn), 4);
-        f.read(reinterpret_cast<char*>(&num_heads), 4);
-        f.read(reinterpret_cast<char*>(&num_kv_heads), 4);
+        f.read(reinterpret_cast<char*>(&vocab_sz), 4);
+        f.read(reinterpret_cast<char*>(&model_dim), 4);
+        f.read(reinterpret_cast<char*>(&model_d_emb), 4);
+        f.read(reinterpret_cast<char*>(&head_dim), 4);
+        f.read(reinterpret_cast<char*>(&n_h), 4);
+        f.read(reinterpret_cast<char*>(&n_kv_h), 4);
+        f.read(reinterpret_cast<char*>(&n_l), 4);
+        f.read(reinterpret_cast<char*>(&ffn_dim), 4);
         f.read(reinterpret_cast<char*>(&num_tensors), 4);
 
         if (magic != 0x4D414241 && magic != 0x41504558) {
             std::cerr << "Invalid binary magic number: 0x" << std::hex << magic << std::endl;
             return false;
         }
+
+        vocab_size = vocab_sz;
+        dim = model_dim;
+        d_emb = model_d_emb;
+        d_head = head_dim;
+        num_heads = n_h;
+        num_kv_heads = n_kv_h;
+        num_layers = n_l;
+        d_ffn = ffn_dim;
+
+        blocks.resize(num_layers);
+        block_states.resize(num_layers);
+        reset_state();
 
         std::map<std::string, Tensor> tensors;
         for (uint32_t i = 0; i < num_tensors; ++i) {
@@ -113,44 +136,51 @@ public:
             tensors[name] = std::move(t);
         }
 
-        emb_w.w_emb = tensors["embeddings.w_emb.weight"];
-        emb_w.w_proj_in = tensors["embeddings.w_proj_in.weight"];
-        emb_w.w_proj_out = tensors["embeddings.w_proj_out.weight"];
-        final_norm = tensors["final_norm.weight"];
-        mtp_w.proj_weight = tensors["mtp_head.proj.weight"];
-        mtp_w.proj_bias = tensors["mtp_head.proj.bias"];
+        emb_w.w_emb = std::move(tensors["embeddings.w_emb.weight"]);
+        emb_w.w_proj_in = std::move(tensors["embeddings.w_proj_in.weight"]);
+        emb_w.w_proj_out = std::move(tensors["embeddings.w_proj_out.weight"]);
+        final_norm = std::move(tensors["final_norm.weight"]);
+        mtp_w.proj_weight = std::move(tensors["mtp_head.proj.weight"]);
+        mtp_w.proj_bias = std::move(tensors["mtp_head.proj.bias"]);
 
-        for (size_t l = 0; l < 20; ++l) {
+        for (size_t l = 0; l < num_layers; ++l) {
             std::string pfx = "layers." + std::to_string(l) + ".";
-            blocks[l].input_norm = tensors[pfx + "input_norm.weight"];
-            blocks[l].post_attn_norm = tensors[pfx + "post_attn_norm.weight"];
-            blocks[l].attn_gate = tensors[pfx + "attn_gate.g_res"];
-            blocks[l].ffn_norm = tensors[pfx + "ffn_norm.weight"];
-            blocks[l].post_ffn_norm = tensors[pfx + "post_ffn_norm.weight"];
-            blocks[l].ffn_gate = tensors[pfx + "ffn_gate.g_res"];
+            blocks[l].is_gqa = (tensors.find(pfx + "mixer.q_norm.weight") != tensors.end());
 
-            blocks[l].swiglu_w.w_gate = tensors[pfx + "ffn.w_gate.weight"];
-            blocks[l].swiglu_w.w_up = tensors[pfx + "ffn.w_up.weight"];
-            blocks[l].swiglu_w.w_down = tensors[pfx + "ffn.w_down.weight"];
+            blocks[l].input_norm = std::move(tensors[pfx + "input_norm.weight"]);
+            blocks[l].post_attn_norm = std::move(tensors[pfx + "post_attn_norm.weight"]);
+            blocks[l].attn_gate = std::move(tensors[pfx + "attn_gate.g_res"]);
+            blocks[l].ffn_norm = std::move(tensors[pfx + "ffn_norm.weight"]);
+            blocks[l].post_ffn_norm = std::move(tensors[pfx + "post_ffn_norm.weight"]);
+            blocks[l].ffn_gate = std::move(tensors[pfx + "ffn_gate.g_res"]);
+
+            blocks[l].swiglu_w.w_gate = std::move(tensors[pfx + "ffn.w_gate.weight"]);
+            blocks[l].swiglu_w.w_up = std::move(tensors[pfx + "ffn.w_up.weight"]);
+            blocks[l].swiglu_w.w_down = std::move(tensors[pfx + "ffn.w_down.weight"]);
 
             if (blocks[l].is_gqa) {
-                blocks[l].gqa_w.q_proj = tensors[pfx + "mixer.q_proj.weight"];
-                blocks[l].gqa_w.k_proj = tensors[pfx + "mixer.k_proj.weight"];
-                blocks[l].gqa_w.v_proj = tensors[pfx + "mixer.v_proj.weight"];
-                blocks[l].gqa_w.o_proj = tensors[pfx + "mixer.o_proj.weight"];
-                blocks[l].gqa_w.q_norm = tensors[pfx + "mixer.q_norm.weight"];
-                blocks[l].gqa_w.k_norm = tensors[pfx + "mixer.k_norm.weight"];
+                blocks[l].gqa_w.q_proj = std::move(tensors[pfx + "mixer.q_proj.weight"]);
+                blocks[l].gqa_w.k_proj = std::move(tensors[pfx + "mixer.k_proj.weight"]);
+                blocks[l].gqa_w.v_proj = std::move(tensors[pfx + "mixer.v_proj.weight"]);
+                blocks[l].gqa_w.o_proj = std::move(tensors[pfx + "mixer.o_proj.weight"]);
+                blocks[l].gqa_w.q_norm = std::move(tensors[pfx + "mixer.q_norm.weight"]);
+                blocks[l].gqa_w.k_norm = std::move(tensors[pfx + "mixer.k_norm.weight"]);
+                blocks[l].gqa_w.H_q = num_heads;
+                blocks[l].gqa_w.H_kv = num_kv_heads;
+                blocks[l].gqa_w.d = d_head;
             } else {
-                blocks[l].gdn2_w.q_proj = tensors[pfx + "mixer.q_proj.weight"];
-                blocks[l].gdn2_w.k_proj = tensors[pfx + "mixer.k_proj.weight"];
-                blocks[l].gdn2_w.v_proj = tensors[pfx + "mixer.v_proj.weight"];
-                blocks[l].gdn2_w.o_proj = tensors[pfx + "mixer.o_proj.weight"];
-                blocks[l].gdn2_w.conv_q = tensors[pfx + "mixer.conv_q.weight"];
-                blocks[l].gdn2_w.conv_k = tensors[pfx + "mixer.conv_k.weight"];
-                blocks[l].gdn2_w.conv_v = tensors[pfx + "mixer.conv_v.weight"];
-                blocks[l].gdn2_w.gate_alpha = tensors[pfx + "mixer.gate_alpha.weight"];
-                blocks[l].gdn2_w.gate_erase = tensors[pfx + "mixer.gate_erase.weight"];
-                blocks[l].gdn2_w.gate_write = tensors[pfx + "mixer.gate_write.weight"];
+                blocks[l].gdn2_w.q_proj = std::move(tensors[pfx + "mixer.q_proj.weight"]);
+                blocks[l].gdn2_w.k_proj = std::move(tensors[pfx + "mixer.k_proj.weight"]);
+                blocks[l].gdn2_w.v_proj = std::move(tensors[pfx + "mixer.v_proj.weight"]);
+                blocks[l].gdn2_w.o_proj = std::move(tensors[pfx + "mixer.o_proj.weight"]);
+                blocks[l].gdn2_w.conv_q = std::move(tensors[pfx + "mixer.conv_q.weight"]);
+                blocks[l].gdn2_w.conv_k = std::move(tensors[pfx + "mixer.conv_k.weight"]);
+                blocks[l].gdn2_w.conv_v = std::move(tensors[pfx + "mixer.conv_v.weight"]);
+                blocks[l].gdn2_w.gate_alpha = std::move(tensors[pfx + "mixer.gate_alpha.weight"]);
+                blocks[l].gdn2_w.gate_erase = std::move(tensors[pfx + "mixer.gate_erase.weight"]);
+                blocks[l].gdn2_w.gate_write = std::move(tensors[pfx + "mixer.gate_write.weight"]);
+                blocks[l].gdn2_w.H = num_heads;
+                blocks[l].gdn2_w.d = d_head;
             }
         }
 
@@ -167,7 +197,7 @@ public:
         Tensor h;
         factorized_embed(h, token_ids, emb_w);
 
-        for (size_t l = 0; l < 20; ++l) {
+        for (size_t l = 0; l < blocks.size(); ++l) {
             auto& blk = blocks[l];
             auto& state = block_states[l];
 

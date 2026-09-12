@@ -7,16 +7,18 @@
 namespace maba {
 
 struct GDN2W {
-    Tensor q_proj;      // (640, 640)
-    Tensor k_proj;      // (640, 640)
-    Tensor v_proj;      // (640, 640)
-    Tensor o_proj;      // (640, 640)
-    Tensor conv_q;      // (640, 1, 4)
-    Tensor conv_k;      // (640, 1, 4)
-    Tensor conv_v;      // (640, 1, 4)
-    Tensor gate_alpha;  // (10, 640)
-    Tensor gate_erase;  // (10, 640)
-    Tensor gate_write;  // (10, 640)
+    Tensor q_proj;
+    Tensor k_proj;
+    Tensor v_proj;
+    Tensor o_proj;
+    Tensor conv_q;
+    Tensor conv_k;
+    Tensor conv_v;
+    Tensor gate_alpha;
+    Tensor gate_erase;
+    Tensor gate_write;
+    size_t H = 10;
+    size_t d = 64;
 };
 
 using GDN2Weights = GDN2W;
@@ -27,11 +29,18 @@ struct GDN2State {
     std::vector<float> conv_buf_k;
     std::vector<float> conv_buf_v;
 
-    GDN2State() {
-        S.assign(10 * 64 * 64, 0.0f);
-        conv_buf_q.assign(640 * 3, 0.0f);
-        conv_buf_k.assign(640 * 3, 0.0f);
-        conv_buf_v.assign(640 * 3, 0.0f);
+    void reset() {
+        std::fill(S.begin(), S.end(), 0.0f);
+        std::fill(conv_buf_q.begin(), conv_buf_q.end(), 0.0f);
+        std::fill(conv_buf_k.begin(), conv_buf_k.end(), 0.0f);
+        std::fill(conv_buf_v.begin(), conv_buf_v.end(), 0.0f);
+    }
+
+    void init(size_t H, size_t d, size_t D) {
+        if (S.size() != H * d * d) S.assign(H * d * d, 0.0f);
+        if (conv_buf_q.size() != D * 3) conv_buf_q.assign(D * 3, 0.0f);
+        if (conv_buf_k.size() != D * 3) conv_buf_k.assign(D * 3, 0.0f);
+        if (conv_buf_v.size() != D * 3) conv_buf_v.assign(D * 3, 0.0f);
     }
 };
 
@@ -105,9 +114,11 @@ inline void gdn2_fwd(
     GDN2State& state
 ) {
     size_t L = x.shape[0];
-    size_t D = 640;
-    size_t H = 10;
-    size_t d = 64;
+    size_t D = x.shape[1];
+    size_t H = (w.H > 0) ? w.H : (w.gate_alpha.shape.empty() ? 10 : w.gate_alpha.shape[0]);
+    size_t d = (w.d > 0) ? w.d : (D / H);
+
+    state.init(H, d, D);
 
     Tensor q_proj, k_proj, v_proj;
     matmul_transB(x, w.q_proj, q_proj);
@@ -126,6 +137,8 @@ inline void gdn2_fwd(
 
     Tensor o_concat({L, D});
 
+    std::vector<float> k_t(d), e_t(d), z_t(d), e_S(d), delta(d);
+
     for (size_t t = 0; t < L; ++t) {
         for (size_t h = 0; h < H; ++h) {
             float alpha = sigmoid(alpha_g.at(t, h));
@@ -139,17 +152,16 @@ inline void gdn2_fwd(
             float* S_h = &state.S[h * d * d];
 
             float k_norm_sq = 0.0f;
+            #pragma omp simd reduction(+:k_norm_sq)
             for (size_t i = 0; i < d; ++i) k_norm_sq += k_raw[i] * k_raw[i];
             float inv_k_norm = 1.0f / (std::sqrt(k_norm_sq) + 1e-6f);
 
-            float k_t[64], e_t[64], z_t[64];
             for (size_t i = 0; i < d; ++i) {
                 k_t[i] = k_raw[i] * inv_k_norm;
                 e_t[i] = b_val * k_t[i];
                 z_t[i] = w_val * v_raw[i];
             }
 
-            float e_S[64] = {0.0f};
             for (size_t col = 0; col < d; ++col) {
                 float sum = 0.0f;
                 #pragma omp simd reduction(+:sum)
@@ -159,7 +171,6 @@ inline void gdn2_fwd(
                 e_S[col] = sum;
             }
 
-            float delta[64];
             for (size_t i = 0; i < d; ++i) delta[i] = z_t[i] - e_S[i];
 
             for (size_t row = 0; row < d; ++row) {
@@ -173,6 +184,7 @@ inline void gdn2_fwd(
 
             for (size_t col = 0; col < d; ++col) {
                 float o_val = 0.0f;
+                #pragma omp simd reduction(+:o_val)
                 for (size_t row = 0; row < d; ++row) {
                     o_val += q_t[row] * S_h[row * d + col];
                 }

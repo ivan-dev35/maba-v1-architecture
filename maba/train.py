@@ -19,7 +19,8 @@ from .hardware import (
     wrap_loader,
     is_master_process,
     master_print,
-    rendezvous
+    rendezvous,
+    reduce_gradients
 )
 
 def train(
@@ -81,32 +82,31 @@ def train(
         mtp_loss = loss_dict["mtp_loss"]
 
         tot_loss.backward()
+        reduce_gradients(opt)
         clip_grad_norm(model.parameters(), 1.0)
         opt.step(barrier=True)
         mark_step()
 
-        t_val = tot_loss.item()
-        m_val = main_loss.item()
-        mtp_val = mtp_loss.item()
-
-        del out, loss_dict, tot_loss, main_loss, mtp_loss
+        del out, loss_dict
         opt.zero_grad(set_to_none=True)
-
-        if init_loss is None:
-            init_loss = t_val
-        last_loss = t_val
 
         step += 1
         if step % 10 == 0 or step == 1 or step == n_steps:
+            t_val = tot_loss.item()
+            m_val = main_loss.item()
+            mtp_val = mtp_loss.item()
+            if init_loss is None:
+                init_loss = t_val
+            last_loss = t_val
             el = time.time() - t0
             ppl = math.exp(min(m_val, 20.0))
             master_print(f"step {step:3d}/{n_steps:3d} | loss {t_val:.4f} | ntp {m_val:.4f} | mtp {mtp_val:.4f} | ppl {ppl:.2f} | {el:.1f}s")
+        del tot_loss, main_loss, mtp_loss
 
     master_print(f"Loss: {init_loss:.4f} -> {last_loss:.4f}")
 
     if is_master_process():
         os.makedirs(os.path.dirname(ckpt_path) if os.path.dirname(ckpt_path) else ".", exist_ok=True)
-        # Move state dict to CPU before saving
         cpu_sd = {k: v.cpu() for k, v in model.state_dict().items()}
         torch.save({
             "config": cfg,
@@ -175,26 +175,27 @@ def _mp_tpu_fn(index: int, args_dict: Dict[str, Any]):
         mtp_loss = loss_dict["mtp_loss"]
 
         tot_loss.backward()
+        reduce_gradients(opt)
         clip_grad_norm(model.parameters(), 1.0)
         opt.step(barrier=True)
         mark_step()
 
-        t_val = tot_loss.item()
-        m_val = main_loss.item()
-        mtp_val = mtp_loss.item()
-
-        del out, loss_dict, tot_loss, main_loss, mtp_loss
+        del out, loss_dict
         opt.zero_grad(set_to_none=True)
 
-        if init_loss is None:
-            init_loss = t_val
-        last_loss = t_val
-
         step += 1
-        if (step % 10 == 0 or step == 1 or step == n_steps) and xm.is_master_ordinal():
-            el = time.time() - t0
-            ppl = math.exp(min(m_val, 20.0))
-            print(f"TPU core {index} | step {step:3d}/{n_steps:3d} | loss {t_val:.4f} | ntp {m_val:.4f} | mtp {mtp_val:.4f} | ppl {ppl:.2f} | {el:.1f}s")
+        if step % 10 == 0 or step == 1 or step == n_steps:
+            t_val = tot_loss.item()
+            m_val = main_loss.item()
+            mtp_val = mtp_loss.item()
+            if init_loss is None:
+                init_loss = t_val
+            last_loss = t_val
+            if xm.is_master_ordinal():
+                el = time.time() - t0
+                ppl = math.exp(min(m_val, 20.0))
+                print(f"TPU core {index} | step {step:3d}/{n_steps:3d} | loss {t_val:.4f} | ntp {m_val:.4f} | mtp {mtp_val:.4f} | ppl {ppl:.2f} | {el:.1f}s")
+        del tot_loss, main_loss, mtp_loss
 
     if xm.is_master_ordinal():
         print(f"TPU Multi-Core Loss: {init_loss:.4f} -> {last_loss:.4f}")

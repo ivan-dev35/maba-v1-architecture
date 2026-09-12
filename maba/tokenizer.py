@@ -59,10 +59,28 @@ class Tokenizer:
             self.tok_to_id[t] = cid
             cid += 1
 
+        self.max_word_len = max((len(k) for k, v in self.tok_to_id.items() if v >= 260), default=0)
+
     def encode(self, text: str, add_bos: bool = True, add_eos: bool = False) -> List[int]:
         toks = [self.BOS_ID] if add_bos else []
-        for b in text.encode("utf-8"):
-            toks.append(4 + b)
+        i = 0
+        n = len(text)
+        max_l = getattr(self, "max_word_len", 32)
+        while i < n:
+            matched = False
+            for length in range(min(max_l, n - i), 0, -1):
+                sub = text[i:i + length]
+                tid = self.tok_to_id.get(sub)
+                if tid is not None and tid >= 260:
+                    toks.append(tid)
+                    i += length
+                    matched = True
+                    break
+            if not matched:
+                b = text[i].encode("utf-8")
+                for byte in b:
+                    toks.append(4 + byte)
+                i += 1
         if add_eos:
             toks.append(self.EOS_ID)
         return toks
@@ -76,7 +94,7 @@ class Tokenizer:
                 b.append(i - 4)
             else:
                 tok = self.id_to_tok.get(i, f"<{i}>")
-                b.extend(f" {tok}".encode("utf-8", errors="ignore"))
+                b.extend(tok.encode("utf-8", errors="ignore"))
         return b.decode("utf-8", errors="replace")
 
 MabaTokenizer = Tokenizer
