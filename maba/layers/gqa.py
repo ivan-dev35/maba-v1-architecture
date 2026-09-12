@@ -48,7 +48,8 @@ class GQA(nn.Module):
         k = self.k_norm(k).transpose(1, 2)
         v = v.transpose(1, 2)
 
-        q, k = apply_rope(q, k, cos, sin)
+        if cos is not None and sin is not None:
+            q, k = apply_rope(q, k, cos, sin)
 
         if kv is not None:
             pk, pv = kv

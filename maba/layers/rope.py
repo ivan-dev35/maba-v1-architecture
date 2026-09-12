@@ -41,10 +41,12 @@ def rotate_half(x: torch.Tensor) -> torch.Tensor:
 def apply_rope(
     q: torch.Tensor,
     k: torch.Tensor,
-    cos: torch.Tensor,
-    sin: torch.Tensor,
+    cos: Optional[torch.Tensor] = None,
+    sin: Optional[torch.Tensor] = None,
     pos_ids: Optional[torch.Tensor] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    if cos is None or sin is None:
+        return q, k
     if pos_ids is not None:
         c = cos[pos_ids].unsqueeze(1)
         s = sin[pos_ids].unsqueeze(1)
