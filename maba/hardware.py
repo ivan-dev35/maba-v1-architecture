@@ -41,7 +41,11 @@ def get_device(dev_name: str = "auto") -> torch.device:
             import torch_xla.core.xla_model as xm
             return xm.xla_device()
         elif torch.cuda.is_available():
-            dev = torch.device("cuda")
+            if "LOCAL_RANK" in os.environ:
+                dev = torch.device(f"cuda:{int(os.environ['LOCAL_RANK'])}")
+                torch.cuda.set_device(dev)
+            else:
+                dev = torch.device("cuda")
             torch.backends.cuda.matmul.allow_tf32 = True
             torch.backends.cudnn.allow_tf32 = True
             return dev
@@ -99,6 +103,19 @@ def reduce_gradients(optimizer):
                     xm.reduce_gradients(optimizer)
         except Exception:
             pass
+    elif torch.distributed.is_available() and torch.distributed.is_initialized():
+        ws = torch.distributed.get_world_size()
+        if ws > 1:
+            params = []
+            if hasattr(optimizer, "model"):
+                params = list(optimizer.model.parameters())
+            elif hasattr(optimizer, "param_groups"):
+                for pg in optimizer.param_groups:
+                    params.extend(pg["params"])
+            for p in params:
+                if p.grad is not None:
+                    torch.distributed.all_reduce(p.grad.data, op=torch.distributed.ReduceOp.SUM)
+                    p.grad.data.div_(ws)
 
 def clip_grad_norm(parameters, max_norm: float = 1.0) -> torch.Tensor:
     params = list(parameters)
@@ -130,6 +147,8 @@ def is_master_process() -> bool:
             return xm.is_master_ordinal(local=False)
         except Exception:
             return True
+    if torch.distributed.is_available() and torch.distributed.is_initialized():
+        return torch.distributed.get_rank() == 0
     return True
 
 def master_print(*args, **kwargs):
@@ -143,6 +162,8 @@ def rendezvous(tag: str):
             xm.rendezvous(tag)
         except Exception:
             pass
+    elif torch.distributed.is_available() and torch.distributed.is_initialized():
+        torch.distributed.barrier()
 
 def get_tpu_info() -> Dict[str, Any]:
     info = {

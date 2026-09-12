@@ -52,7 +52,12 @@ def train(
 
     tok = Tokenizer()
     ds = Dataset(tokenizer=tok, seq_len=seq_len, repeat=20)
-    dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
+    is_dist = torch.distributed.is_available() and torch.distributed.is_initialized()
+    if is_dist:
+        sampler = DistributedSampler(ds, num_replicas=torch.distributed.get_world_size(), rank=torch.distributed.get_rank(), shuffle=True)
+        dl = DataLoader(ds, batch_size=batch_size, sampler=sampler)
+    else:
+        dl = DataLoader(ds, batch_size=batch_size, shuffle=True)
     device_loader = wrap_loader(dl, dev)
 
     opt = HybridOpt(model, lr_muon=0.02, wd_muon=0.01, lr_adamw=1.5e-3, wd_adamw=0.1)
@@ -74,8 +79,9 @@ def train(
         x = batch["input_ids"].to(dev)
         y = batch["labels"].to(dev)
 
+        w_mtp = cfg.mtp_weight * min(1.0, (step + 1) / max(1, int(n_steps * 0.2)))
         opt.zero_grad()
-        out = model(x, labels=y)
+        out = model(x, labels=y, mtp_weight=w_mtp)
         loss_dict = out["loss"]
         tot_loss = loss_dict["total_loss"]
         main_loss = loss_dict["main_loss"]

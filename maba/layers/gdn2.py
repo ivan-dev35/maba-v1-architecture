@@ -62,23 +62,26 @@ class GDN2(nn.Module):
         v = v.view(B, L, H, d)
 
         k = k / (torch.linalg.vector_norm(k, dim=-1, keepdim=True) + 1e-6)
-        e = b * k
-        z = w * v
+        e = (b * k).unsqueeze(-2)
+        z = (w * v).unsqueeze(-2)
+        kt = k.unsqueeze(-1)
+        qt = q.unsqueeze(-2)
 
         S = s_rec.clone() if s_rec is not None else torch.zeros(B, H, d, d, dtype=x.dtype, device=x.device)
 
+        if L == 1:
+            S = alpha[:, 0] * S
+            delta = z[:, 0] - torch.matmul(e[:, 0], S)
+            S = S + torch.matmul(kt[:, 0], delta)
+            out = torch.matmul(qt[:, 0], S).squeeze(-2).unsqueeze(1).reshape(B, 1, D)
+            return self.o_proj(out), S, (ncs_q, ncs_k, ncs_v)
+
         outs = []
         for t in range(L):
-            a_t = alpha[:, t]
-            kt = k[:, t].unsqueeze(-1)
-            et = e[:, t].unsqueeze(-2)
-            zt = z[:, t].unsqueeze(-2)
-            qt = q[:, t].unsqueeze(-2)
-
-            S = a_t * S
-            delta = zt - torch.matmul(et, S)
-            S = S + torch.matmul(kt, delta)
-            outs.append(torch.matmul(qt, S).squeeze(-2))
+            S = alpha[:, t] * S
+            delta = z[:, t] - torch.matmul(e[:, t], S)
+            S = S + torch.matmul(kt[:, t], delta)
+            outs.append(torch.matmul(qt[:, t], S).squeeze(-2))
 
         out = torch.stack(outs, dim=1).reshape(B, L, D)
         return self.o_proj(out), S, (ncs_q, ncs_k, ncs_v)

@@ -76,7 +76,8 @@ class Model(nn.Module):
         labels: Optional[torch.Tensor] = None,
         states: Optional[List[List[Dict[str, Any]]]] = None,
         return_states: bool = False,
-        start_pos: Optional[int] = None
+        start_pos: Optional[int] = None,
+        mtp_weight: Optional[float] = None
     ) -> Dict[str, Any]:
         B, L = input_ids.shape
         dev = input_ids.device
@@ -152,7 +153,8 @@ class Model(nn.Module):
             else:
                 mtp_loss = (logits.sum() * 0.0) if logits.requires_grad else torch.tensor(0.0, device=dev, dtype=logits.dtype)
 
-            total_loss = main_loss + self.config.mtp_weight * mtp_loss
+            w_mtp = self.config.mtp_weight if mtp_weight is None else mtp_weight
+            total_loss = main_loss + w_mtp * mtp_loss
             loss = {
                 "total_loss": total_loss,
                 "main_loss": main_loss,
