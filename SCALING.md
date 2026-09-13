@@ -12,7 +12,7 @@ Technical specification and architectural comparison for scaling the Maba archit
 
 ## 2. Scaling Topology Presets
 
-| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B | Maba-30B (Agentic) |
+| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B | Maba-30B |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Total Parameters** | 101,177,984 (101.2M) | 1,004,729,600 (1.00B) | 2,977,156,608 (2.98B) | 7,127,820,544 (7.13B) | 29,039,812,864 (29.04B) |
 | **Core Parameters** | 96,327,040 (95.21%) | 982,508,800 (97.79%) | 2,941,302,784 (98.80%) | 7,071,844,608 (99.21%) | 28,930,813,184 (99.62%) |
@@ -56,7 +56,7 @@ The decisive divergence lies in embedding topology and parameter allocation:
 | **KV Cache (131k FP16)** | **1,280.0 MB** | 768.0 MB | 1,536.0 MB | **2,048.0 MB** | 4,096.0 MB |
 | **Speculative Decoding** | Built-in MTP (k=2) | Built-in MTP | Built-in MTP | Built-in MTP (k=2) | Built-in MTP |
 
-### Agentic Tier (27B - 31B)
+### 30B Tier (27B - 31B)
 
 | Feature | Maba-30B (2026) | Muse-Glimmer-30B (Meta 2026) | Qwen3.8-27B (2026) | Gemma4-31B (Google 2026) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -176,6 +176,6 @@ python3 -m maba.cli params --scale 3B
 # Audit 7B configuration
 python3 -m maba.cli params --scale 7B
 
-# Audit 30B agentic configuration
+# Audit 30B configuration
 python3 -m maba.cli params --scale 30B
 ```

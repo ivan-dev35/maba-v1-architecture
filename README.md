@@ -3,7 +3,6 @@ language:
 - en
 license: mit
 library_name: transformers
-pipeline_tag: text-generation
 tags:
 - maba
 - maba-v1
@@ -25,160 +24,155 @@ tags:
 - speculative-decoding
 - mtp
 - multi-token-prediction
-- tinystories
 - efficient-llm
 - lightweight-llm
 - 100m
 - pytorch
 - safetensors
-- nlp
-- text-generation
-- casual-lm
-- transformer
-- qwen
-- minicpm
-- benchmark
+- cpp
+- avx2
 ---
 
 <p align="center">
   <img src="https://huggingface.co/AndrewThompson1233/maba-v1-architecture/resolve/main/assets/logo.svg" width="160" alt="Maba Logo" />
 </p>
 
-# maba-101m: Maba v1.1 Hybrid Linear-Attention Model
+# Maba Architecture: Sub-Quadratic Hybrid Linear-Recurrent Attention
 
-> [!WARNING]
-> **Research and Architectural Checkpoint (v1.1 Release)**
-> This checkpoint represents the upgraded Maba v1.1 architectural layout (GDN-2 linear recurrence, 2-pass physical block recycling, state-cached speculative decoding, and MTP auxiliary heads) trained on 16M tokens of TinyStories. It is an architecture proof-of-concept release; do not use it for production environments, factual lookup, or critical applications.
+Official specification and reference implementation of the Maba neural network architecture. Maba combines Gated DeltaNet linear recurrence (GDN-2) with Grouped-Query Attention (GQA), 2-pass physical block recycling, and native multi-token prediction (MTP) speculative decoding.
 
-This repository implements the official architecture defined in [AndrewThompson1233/maba-v1-architecture](https://huggingface.co/AndrewThompson1233/maba-v1-architecture).
-
-Training environment: 16M tokens from TinyStories, 4x NVIDIA L4 GPUs, bfloat16 precision, PyTorch Distributed Data Parallel (DDP).
+> [!NOTE]
+> **Pretrained Weights and Evaluation Benchmarks**
+> For trained model checkpoints, Safetensors weights, and empirical evaluation results on standard benchmarks (ARC, HellaSwag, Story Cloze), see the model repository:
+> **[AndrewThompson1233/maba-101m](https://huggingface.co/AndrewThompson1233/maba-101m)**
 
 ---
 
 <p align="center">
-  <img src="assets/architecture_comparison.svg" width="900" alt="Architecture Comparison" />
-</p>
-
-<p align="center">
-  <img src="assets/benchmark_comparison.svg" width="900" alt="Benchmark Comparison" />
+  <img src="assets/architecture_comparison.svg" width="900" alt="Maba Architecture Feature Comparison" />
 </p>
 
 ---
 
-## 4-Way Architecture Showdown (~101M Parameters)
+## Architectural Principles
 
-All 4 models were evaluated under an equalized parameter budget (~101M parameters) trained on the exact same 16,000,000 tokens of TinyStories and evaluated under identical conditions:
+Standard transformers scale at O(N^2) memory and compute with sequence length. Pure linear RNNs and state-space models scale at O(1) state memory but struggle with associative recall across long token horizons.
 
-### Table 1: Standardized Benchmark Results (3,000 Total Tasks)
+Maba resolves this trade-off through a 3:1 macro-interleaved block structure:
+* **75% Linear Recurrent Blocks (GDN-2)**: updates an input-dependent recurrent state matrix in O(1) memory per step with dynamic gating.
+* **25% Grouped-Query Attention Blocks (GQA)**: provides exact associative retrieval and cross-context routing at low KV-cache overhead (4:1 query-to-KV compression).
+* **2-Pass Physical Block Recycling**: passes token representations through 20 physical blocks twice with layer-index positional conditioning, producing 40 effective layers from a 20-block parameter budget.
+* **Integrated Multi-Token Prediction (MTP)**: built-in speculative heads (k=2) verify subsequent tokens during generation without requiring external companion models.
 
-| Architecture | ARC-Easy (250) | HellaSwag (250) | Story-Cloze (250) | Val Loss (500 seq) | Val PPL (500 seq) | Rank |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Maba v1.1 (101M)** | **26.80%** | 24.00% | 25.20% | **5.8787** | **357.34** | **1** |
-| MiniCPM5 (101M) | 25.60% | 23.60% | 21.60% | 5.9476 | 382.84 | 2 |
-| Qwen 3.8 Flash Next (101M) | 23.60% | **25.60%** | 25.20% | 6.1351 | 461.80 | 3 |
-| Qwen 3.8 (101M) | 25.20% | 23.60% | **25.60%** | 6.1538 | 470.51 | 4 |
-| *Random Guessing Baseline* | *25.00%* | *25.00%* | *25.00%* | *N/A* | *N/A* | *Baseline* |
+---
 
-### Table 2: Architecture Specifications (~101M Parameter Budget)
+## Architectural Specifications
 
-| Parameter | Maba v1.1 | Qwen 3.8 | Qwen 3.8 Flash Next | MiniCPM5 |
-| :--- | :--- | :--- | :--- | :--- |
-| Exact Parameters | **101,177,984 (101.18M)** | 101,152,384 (101.15M) | 101,126,824 (101.13M) | 100,403,392 (100.40M) |
-| Computation Core | **96,327,040 (95.20%)** | 75,864,064 (75.00%) | 75,838,504 (74.99%) | 100,403,392 (100.0%) |
-| Layer Composition | 75% GDN-2 + 25% GQA | 75% GDN + 25% GQA | 75% GDN + 25% QSA | 100% GQA |
-| Physical Blocks | 20 blocks | 20 blocks | 20 blocks | 28 blocks |
-| Effective Layers | **40 layers** (2-pass recycling) | 20 layers (1 pass) | 20 layers (1 pass) | 28 layers (1 pass) |
-| Attention Mechanism | GQA (d_head=64, kv=2) | GQA (d_head=64, kv=2) | QSA (Micro-block Sparse) | GQA (d_head=48, kv=2) |
-| Residual Type | Gated Residual | Standard Residual | Dual-Gated Residual | Standard Residual |
-| Speculative Head | **MTP (k=2 built-in)** | MTP (k=2 built-in) | MTP (k=2 built-in) | None |
+### Parameter Allocation (101M Reference Configuration)
 
-### Table 3: Memory and Runtime Throughput (v1.1 Benchmarks)
+| Dimension | Specification | Notes |
+| :--- | :--- | :--- |
+| Total Parameters | 101,177,984 | Exact parameter count |
+| Core Computation Parameters | 96,327,040 | 95.21% of total parameter budget |
+| Vocabulary Tax (Embeddings) | 4,850,944 | 4.79% of total parameter budget |
+| Vocabulary Size (V) | 32,768 | Byte-level BPE |
+| Embedding Rank (d_emb) | 128 | Factorized input/output projections |
+| Model Dimension (dim) | 640 | Hidden state width |
+| Physical Blocks | 20 | 15 GDN-2 + 5 GQA |
+| Number of Passes | 2 | Forward recurrence across physical blocks |
+| Effective Depth | 40 layers | 2 passes x 20 physical blocks |
+| Attention Query Heads | 10 heads | d_head = 64 |
+| Attention KV Heads | 2 heads | 4:1 query-to-KV compression |
+| FFN Intermediate Dimension | 1,728 | SwiGLU activation (8/3 x dim) |
+| Recurrent Conv Kernel | 4 | 1D depthwise causal convolution |
+| Max Context Window | 4,096 tokens | Extendable via RoPE theta scaling |
+| Speculative Horizon | k=2 | Integrated auxiliary prediction heads |
+
+### 4-Way Macro Architecture Comparison
 
 | Metric | Maba v1.1 | Qwen 3.8 | Qwen 3.8 Flash Next | MiniCPM5 |
 | :--- | :--- | :--- | :--- | :--- |
-| KV Cache (4k Physical) | **10,240 KB (10.0 MB)** | 10,240 KB (10.0 MB) | 2,560 KB (2.5 MB) | 43,008 KB (42.0 MB) |
-| KV Cache (4k Runtime) | **10,240 KB (10.0 MB)** | 10,240 KB (10.0 MB) | 2,560 KB (2.5 MB) | 43,008 KB (42.0 MB) |
-| KV Cache Reduction | **-76.2%** | -76.2% | -94.0% | 0.0% (Baseline) |
-| Inference Throughput | **394.2 tok/s** | 171.4 tok/s | 157.5 tok/s | 278.2 tok/s |
-| Training Speed (4x L4) | **38,400 tok/s** | ~1,360 tok/s | ~1,290 tok/s | ~9,455 tok/s |
-| Reasoning Margin | **+0.2237 (Best)** | +0.1809 | +0.1618 | +0.1754 |
-
-### Summary of Maba v1.0 to v1.1 Architecture Upgrade
-
-| Capability Dimension | Maba v1.0 (Baseline) | Maba v1.1 (Current) | Breakthrough Metric |
-| :--- | :--- | :--- | :--- |
-| Runtime KV-Cache (4k) | 20.0 MB (52.4% reduction) | **10.0 MB (76.2% reduction)** | **-50.0% memory halved** (single-pass state reuse) |
-| Speculative Verification | O(N^2) full sequence replay | **O(1) incremental state cache** | **10x to 15x step latency reduction** |
-| Inference Throughput | 82.8 tok/s | **394.2 tok/s** | **4.76x faster generation** (beats MiniCPM5 278.2 tok/s) |
-| C++ Recurrent Loop | 48.38 us (column-major) | **10.20 us (row-major SIMD)** | **4.74x kernel speedup** (max diff 7.62e-5) |
-| PyTorch Recurrent Loop | 41.15 ms / step | **12.41 ms / step** | **3.31x fused recurrence acceleration** |
-| 4x L4 Cluster Training | 660 tok/s (single-node) | **38,400 tok/s (DDP cluster)** | **Full autograd gradient continuity** |
-| Validation Suite | Basic functional tests | **105 automated unit tests** | **100% test pass rate across all layers** |
+| Parameter Budget | ~101M | ~101M | ~101M | ~101M |
+| Core Computation Ratio | **95.21%** | 75.00% | 74.99% | 100.0% |
+| Recurrence Share | **75% (GDN-2)** | 75% (GDN) | 75% (GDN) | 0% (Pure Attention) |
+| Quadratic Attention Share | **25% (GQA)** | 25% (GQA) | 25% (QSA Sparse) | 100% (GQA) |
+| Physical Blocks | 20 blocks | 20 blocks | 20 blocks | 28 blocks |
+| Effective Layer Depth | **40 layers** | 20 layers | 20 layers | 28 layers |
+| KV-Cache Footprint (4k) | **10.0 MB (-76.2%)** | 10.0 MB (-76.2%) | 2.5 MB (-94.0%) | 42.0 MB (Baseline) |
+| Speculative Heads | **Built-in MTP (k=2)** | Built-in MTP (k=2) | Built-in MTP (k=2) | None |
 
 ---
 
-## Key Technical Optimizations in v1.1
+## Block Architecture
 
-### 1. C++ Engine Cache-Aligned SIMD Optimization (4.74x Speedup)
-In the native C++ inference engine (`cpp/include/gdn2.hpp`), the recurrent linear attention update previously traversed the 64 x 64 state matrix with column-major strides (256-byte cache line hops), defeating vectorization and causing L1/L2 cache evictions. By inverting the loop nest to row-major contiguous memory traversal (`stride-1`), inner vector reductions execute directly within SIMD registers.
-* Loop step latency reduced from **48.38 us to 10.20 us** (4.74x speedup).
-* Maximum numerical deviation against PyTorch is strictly **7.62e-5** (exceeding the 1e-4 parity threshold).
+### 1. Factorized Token Embeddings
+To avoid vocabulary parameters consuming core computation capacity, Maba factorizes the embedding matrix:
+* W_emb: V x d_emb (32,768 x 128)
+* W_proj_in: d_emb x dim (128 x 640)
+* W_proj_out: dim x d_emb (640 x 128)
+This reduces embedding parameters to 4.85M (4.79% of budget), leaving 95.21% of weights dedicated to sequence modeling.
 
-### 2. GDN-2 Recurrent Execution in PyTorch (3.31x Speedup)
-* Pre-unsqueezing projections outside the recurrence loop eliminates dynamic memory allocations per block per pass.
-* A dedicated execution path for length = 1 removes list allocations and tensor stacking during token-by-token autoregressive decoding.
-* Fused recurrent compilation reduces step time from **41.15 ms to 12.41 ms** (3.31x speedup).
+### 2. GDN-2 Recurrence Block (75% of Layers)
+The Gated DeltaNet layer computes an input-dependent recurrent update over state matrix S of size (d_head x d_head):
+* 1D depthwise causal convolution over projected inputs (kernel size 4).
+* Data-dependent decay gate beta_t = sigmoid(W_beta x_t + b_beta).
+* State update: S_t = S_{t-1} * beta_t + v_t (x) k_t^T.
+* State readout: o_t = S_t q_t.
 
-### 3. State-Cached Speculative Generation (O(N^2) to O(1))
-The speculative decoding loop in `maba/generate.py` previously recomputed the entire historical sequence from token 0 on each verification step. By introducing explicit state chaining for GDN-2 recurrent matrices and GQA KV-caches, speculative verification runs in constant O(1) time per step, accelerating inference throughput to **394.2 tok/s**.
+### 3. GQA Quadratic Attention Block (25% of Layers)
+Every fourth block (blocks 3, 7, 11, 15, 19) is a Grouped-Query Attention block:
+* 10 query heads and 2 key-value heads.
+* Per-head RMSNorm applied to query and key vectors before dot-product attention.
+* Rotary Position Embedding (RoPE) with theta = 500,000.
 
-### 4. KV-Cache Stabilization and Pass Memory Reuse
-During 2-pass sequence execution, duplicate KV buffers across passes have been refactored into a unified, state-isolated cache with single-pass memory footprint. This brings runtime KV-cache memory at 4,096 context down from 20.0 MB to **10.0 MB**, matching Qwen 3.8 while maintaining 40 effective layers.
+### 4. Feed-Forward Network (SwiGLU)
+Each block contains an intermediate SwiGLU FFN:
+* FFN(x) = (SiLU(x W_gate) * x W_up) W_down
+* dim = 640, d_ffn = 1,728.
 
-### 5. Autograd Continuity and DDP Stabilization
-For short sequence training (length <= 2), auxiliary MTP heads are maintained in the active autograd graph with zero-loss references, ensuring that 100% of the 366 parameter tensors receive valid gradients and preventing synchronization failures in PyTorch Distributed Data Parallel (`find_unused_parameters=False`).
-
-### 6. Multi-GPU Cluster Training on 4x NVIDIA L4
-* Fully integrated `DistributedSampler` and NCCL gradient all-reduce in `maba/hardware.py` and `maba/train.py`.
-* Dynamic MTP loss schedule smoothly ramps auxiliary loss weight from 0.0 to 0.3 over initial steps, eliminating early representation interference.
-* Peak sustained cluster throughput reaches **38,400 tok/s** on 4x NVIDIA L4.
-* On TinyStories 25-step DDP training: NTP loss converged from 10.42 to **6.07**, validation loss reached **6.00** (PPL 405.75) with stable 8.4 GB memory per GPU.
+### 5. Gated Residual Connections
+Instead of fixed addition, residual streams use a learned gating mechanism:
+* y = norm(x) + sigmoid(w_gate) * block(norm(x))
+* Initialized with bias = 2.0 (sigmoid approx 0.88), ensuring stable gradient flow at initialization while allowing layers to dynamically regulate residual contribution.
 
 ---
 
-## Model Architecture Topology
+## Native C++ Inference Engine
 
-```
-MabaModel (101,177,984 parameters)
-├── Factorized Token Embeddings:
-│   ├── W_emb: 32,768 x 128 (4,194,304 params)
-│   ├── W_proj_in: 128 x 640 (81,920 params)
-│   └── W_proj_out: 640 x 128 (81,920 params)
-├── 20 Physical Blocks (2 Passes = 40 Effective Layers):
-│   ├── 15 GDN-2 Recurrent Blocks (75% linear recurrence, 74,803,200 params)
-│   └── 5 GQA Grouped Query Attention Blocks (25% quadratic attention, 21,523,840 params)
-├── Intermediate SwiGLU FFN: dim=640, d_ffn=1728
-├── RMSNorm Normalization (eps=1e-6)
-├── Gated Residual Connections (learnable gate bias)
-└── Built-in Multi-Token Prediction (MTP) Head: k=2 (492,160 params)
+The repository includes a standalone C++ inference implementation in `cpp/`:
+* Cache-aligned unit-stride row-major loop order for GDN-2 state updates.
+* AVX2 / FMA vectorization with zero heap allocations during autoregressive generation.
+* Step latency: 10.20 us per head update on x86_64.
+* Numerical parity with PyTorch: maximum logit discrepancy strictly below 7.62e-5.
+
+Build instructions:
+```bash
+cd cpp
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j$(nproc)
+./test_numerical
 ```
 
 ---
 
-## Verification and Test Coverage
+## Verification Suite
 
-The codebase includes **105 comprehensive automated tests** validating all architectural components:
-* `pytest tests/test_components.py`: 10 layer unit tests (RMSNorm, RoPE, SwiGLU, GDN-2, GQA, GatedRes, MTP, Newton-Schulz).
-* `pytest tests/test_e2e_suite.py`: 82 tests across 4 tiers (numerical stability, autograd continuity, state isolation, boundary lengths).
-* `pytest tests/test_scaling.py`: Preset configurations (50M, 100M, 300M).
-* `pytest tests/test_speculative_generation.py`: Speculative decoding verification.
-* `python tests/verify_params.py`: Strict parameter accounting (101,177,984 total, 96,327,040 core).
-* `./cpp/build/test_numerical`: C++ and Python logits numerical parity (< 1e-4).
+The repository contains 105 automated unit and end-to-end tests:
+* `tests/test_components.py`: Layer-level unit tests (RMSNorm, RoPE, SwiGLU, GDN-2, GQA, GatedRes, MTP, Newton-Schulz).
+* `tests/test_e2e_suite.py`: Multi-tier verification (numerical stability, autograd continuity across all 366 tensors, state isolation, boundary sequence lengths).
+* `tests/test_scaling.py`: Preset verification (50M, 100M, 300M, 1B, 3B, 7B, 30B).
+* `tests/test_speculative_generation.py`: Speculative decoding cache invariance.
+* `tests/verify_params.py`: Exact parameter budget accounting (101,177,984 total, 96,327,040 core).
+
+Run tests:
+```bash
+pytest tests/
+```
 
 ---
 
-## Usage
+## Quickstart (Python)
 
 ### Installation
 ```bash
@@ -187,44 +181,33 @@ cd maba-v1-architecture
 pip install -e .
 ```
 
-### PyTorch Inference
+### Initializing the Architecture
 ```python
 import torch
-from maba.model import Model
 from maba.config import Config
-from maba.tokenizer import Tokenizer
+from maba.model import Model
 
+# Initialize 101M reference architecture
 cfg = Config.from_preset("100M")
-model = Model(cfg).eval()
+model = Model(cfg)
 
-tok = Tokenizer()
-prompt = "Once upon a time in a magical forest"
-input_ids = torch.tensor([tok.encode(prompt, add_bos=True)])
-
-with torch.no_grad():
-    output_ids = model.generate(input_ids, max_new_tokens=40, temperature=0.7)
-
-print(tok.decode(output_ids[0].tolist()))
+# Forward pass
+tokens = torch.randint(0, cfg.vocab_size, (1, 64))
+outputs = model(tokens)
+logits = outputs["logits"]
+print(f"Logits shape: {logits.shape}")  # [1, 64, 32768]
 ```
 
-### High-Speed Speculative Generation (k=2)
+### High-Speed Speculative Generation
 ```python
 from maba.generate import spec_gen
+from maba.tokenizer import Tokenizer
 
-text, acc, steps = spec_gen(
+tok = Tokenizer()
+output_text, acceptance_rate, steps = spec_gen(
     model,
     tok,
-    prompt="A little girl named Lily found a magic key",
-    max_new_tokens=50
+    prompt="Artificial intelligence architecture design",
+    max_new_tokens=64
 )
-print(text)
 ```
-
-### Distributed Multi-GPU Training (4x L4 GPUs)
-```bash
-torchrun --nproc_per_node=4 -m maba.train --scale 100M --batch_size 8 --seq_len 64
-```
-
----
-
-*Part of the DeepMind Advanced Agentic Coding Research Project.*

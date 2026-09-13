@@ -135,7 +135,7 @@ class Config:
                 mtp_k=2,
                 mtp_weight=0.3,
             )
-        elif s in ("30B", "29B", "AGENTIC"):
+        elif s in ("30B", "29B"):
             return cls(
                 vocab_size=64256,
                 d_emb=768,
