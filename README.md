@@ -49,7 +49,7 @@ Official specification and reference implementation of the Maba neural network a
 ---
 
 <p align="center">
-  <img src="assets/architecture_comparison.svg" width="900" alt="Maba Architecture Feature Comparison" />
+  <img src="https://huggingface.co/AndrewThompson1233/maba-v1-architecture/resolve/main/assets/architecture_comparison.svg" width="900" alt="Maba Architecture Feature Comparison" />
 </p>
 
 ---
