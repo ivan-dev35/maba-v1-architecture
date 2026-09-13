@@ -6,7 +6,9 @@ Technical specification and architectural comparison for scaling the Maba archit
 
 ## 1. Visual Comparison
 
-![Maba Multi-Scale Comparison Against 2026 Architectures](assets/scaling_comparison.svg)
+<p align="center">
+  <img src="https://huggingface.co/AndrewThompson1233/maba-v1-architecture/resolve/main/assets/scaling_comparison.svg" width="900" alt="Maba Multi-Scale Comparison Against 2026 Architectures" />
+</p>
 
 ---
 

@@ -128,45 +128,13 @@ Maba separates state memory into constant recurrent state (GDN-2) and compressed
 
 ---
 
-## Scaling Laws & Topology Presets (100M to 30B)
+## Scaling Specifications (100M to 30B)
 
-The Maba architecture scales systematically from on-device 100M to large-scale 30B parameters. Detailed specifications, derivation equations, and comparative audits against 2026 foundation architectures (Qwen3.5, Muse-Glimmer-30B, Gemma4) are documented in [SCALING.md](SCALING.md).
+The Maba architecture scales systematically from on-device 100M to large-scale 30B parameters, supporting context horizons up to 131k tokens.
 
-<p align="center">
-  <img src="https://huggingface.co/AndrewThompson1233/maba-v1-architecture/resolve/main/assets/scaling_comparison.svg" width="900" alt="Maba Scaling Comparison Against 2026 Architectures" />
-</p>
+For complete multi-scale topology configurations, closed-form parameter derivation equations, and architectural audits against 2026 foundation models (Qwen3.5, Muse-30B, Gemma4), see the dedicated scaling specification:
 
-### Scaling Topology Table
-
-| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B | Maba-30B |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Total Parameters** | 101,177,984 (101.2M) | 1,004,729,600 (1.00B) | 2,977,156,608 (2.98B) | 7,127,820,544 (7.13B) | 29,039,812,864 (29.04B) |
-| **Core Parameters** | 96,327,040 (95.21%) | 982,508,800 (97.79%) | 2,941,302,784 (98.80%) | 7,071,844,608 (99.21%) | 28,930,813,184 (99.62%) |
-| **Embedding Parameters** | 4,358,144 (4.31%) | 17,498,112 (1.74%) | 26,836,992 (0.90%) | 37,093,376 (0.52%) | 59,572,224 (0.21%) |
-| **Vocab Parameter Tax** | **4.31%** | **1.74%** | **0.90%** | **0.52%** | **0.21%** |
-| **Vocabulary Size (V)** | 32,768 | 64,256 | 64,256 | 64,256 | 64,256 |
-| **Embedding Rank (d_emb)** | 128 | 256 | 384 | 512 | 768 |
-| **Model Dimension (dim)** | 640 | 2048 | 2816 | 4096 | 6656 |
-| **Physical Blocks** | 20 | 20 | 32 | 36 | 52 |
-| **Effective Depth (2-pass)** | **40 layers** | **40 layers** | **64 layers** | **72 layers** | **104 layers** |
-| **Block Ratio (GDN:GQA)** | 3:1 (15 GDN + 5 GQA) | 3:1 (15 GDN + 5 GQA) | 3:1 (24 GDN + 8 GQA) | 3:1 (27 GDN + 9 GQA) | 3:1 (39 GDN + 13 GQA) |
-| **Query Heads (n_heads)** | 10 | 16 | 22 | 32 | 52 |
-| **KV Heads (n_kv_heads)** | 2 | 4 | 4 | 8 | 4 |
-| **Head Dimension (d_head)** | 64 | 128 | 128 | 128 | 128 |
-| **FFN Dimension (d_ffn)** | 1728 | 5504 | 7488 | 11008 | 19968 |
-| **Conv Kernel (k_size)** | 4 | 4 | 4 | 4 | 4 |
-| **Context Length (max_len)** | 4,096 tokens | 8,192 tokens | 16,384 tokens | 32,768 tokens | 131,072 tokens |
-| **Speculative Horizon** | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) |
-
-### CLI Parameter Auditing Commands
-Inspect and verify any model scale preset using the built-in CLI:
-```bash
-python3 -m maba.cli params --scale 100M
-python3 -m maba.cli params --scale 1B
-python3 -m maba.cli params --scale 3B
-python3 -m maba.cli params --scale 7B
-python3 -m maba.cli params --scale 30B
-```
+**[SCALING.md](SCALING.md)**
 
 ---
 
