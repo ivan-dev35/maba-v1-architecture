@@ -24,9 +24,12 @@ tags:
 - speculative-decoding
 - mtp
 - multi-token-prediction
-- efficient-llm
-- lightweight-llm
+- scaling
 - 100m
+- 1b
+- 3b
+- 7b
+- 30b
 - pytorch
 - safetensors
 - cpp
@@ -39,7 +42,7 @@ tags:
 
 # Maba Architecture: Sub-Quadratic Hybrid Linear-Recurrent Attention
 
-Official specification and reference implementation of the Maba neural network architecture. Maba combines Gated DeltaNet linear recurrence (GDN-2) with Grouped-Query Attention (GQA), 2-pass physical block recycling, and native multi-token prediction (MTP) speculative decoding.
+Official specification, scaling topology, and reference implementation of the Maba neural network architecture. Maba combines Gated DeltaNet linear recurrence (GDN-2) with Grouped-Query Attention (GQA), 2-pass physical block recycling, and native multi-token prediction (MTP) speculative decoding.
 
 > [!NOTE]
 > **Pretrained Weights and Evaluation Benchmarks**
@@ -66,29 +69,51 @@ Maba resolves this trade-off through a 3:1 macro-interleaved block structure:
 
 ---
 
-## Architectural Specifications
+## Exact Parameter & Memory Breakdown (101M Reference Model)
 
-### Parameter Allocation (101M Reference Configuration)
+### 1. Parameter Accounting
 
-| Dimension | Specification | Notes |
-| :--- | :--- | :--- |
-| Total Parameters | 101,177,984 | Exact parameter count |
-| Core Computation Parameters | 96,327,040 | 95.21% of total parameter budget |
-| Vocabulary Tax (Embeddings) | 4,850,944 | 4.79% of total parameter budget |
-| Vocabulary Size (V) | 32,768 | Byte-level BPE |
-| Embedding Rank (d_emb) | 128 | Factorized input/output projections |
-| Model Dimension (dim) | 640 | Hidden state width |
-| Physical Blocks | 20 | 15 GDN-2 + 5 GQA |
-| Number of Passes | 2 | Forward recurrence across physical blocks |
-| Effective Depth | 40 layers | 2 passes x 20 physical blocks |
-| Attention Query Heads | 10 heads | d_head = 64 |
-| Attention KV Heads | 2 heads | 4:1 query-to-KV compression |
-| FFN Intermediate Dimension | 1,728 | SwiGLU activation (8/3 x dim) |
-| Recurrent Conv Kernel | 4 | 1D depthwise causal convolution |
-| Max Context Window | 4,096 tokens | Extendable via RoPE theta scaling |
-| Speculative Horizon | k=2 | Integrated auxiliary prediction heads |
+| Component | Sub-Layers | Exact Parameters | % of Total | Function |
+| :--- | :--- | :---: | :---: | :--- |
+| **Factorized Embedding** | W_emb (32,768 x 128) | 4,194,304 | 4.15% | Token lookup table |
+| **Embedding Projections** | W_proj_in + W_proj_out | 163,840 | 0.16% | Rank 128 <-> Dim 640 |
+| **Embedding Subtotal** | **Vocab Tax** | **4,358,144** | **4.31%** | **Static parameter overhead** |
+| **15 GDN-2 Blocks** | Recurrence + SwiGLU FFN | 74,803,200 | 73.93% | Linear O(1) recurrence |
+| **5 GQA Blocks** | Attention + SwiGLU FFN | 21,523,840 | 21.27% | Quadratic routing |
+| **Computation Core** | **All 20 Physical Blocks** | **96,327,040** | **95.21%** | **Core sequence modeling** |
+| **Final RMSNorm** | Layer normalization gain | 640 | <0.01% | Final feature variance scale |
+| **MTP Auxiliary Head** | k=2 projection and norm | 492,160 | 0.49% | Native speculative decoding |
+| **Total Architecture** | **Full Model Parameters** | **101,177,984** | **100.00%** | **Exact parameter count** |
 
-### 4-Way Macro Architecture Comparison
+### 2. Weight Memory Footprint by Precision
+
+| Precision | Bytes per Parameter | Model Weights VRAM | Memory Footprint Notes |
+| :--- | :---: | :---: | :--- |
+| **FP32 (Full Precision)** | 4 bytes | **385.96 MB** | Default PyTorch weights |
+| **BF16 / FP16 (Half Precision)** | 2 bytes | **192.98 MB** | Standard inference and training |
+| **INT8 (Quantized)** | 1 byte | **96.49 MB** | Edge devices and embedded systems |
+| **INT4 (GPTQ / AWQ)** | 0.5 bytes | **48.25 MB** | Microcontroller and mobile inference |
+
+### 3. KV-Cache and Recurrent State Scaling
+
+Maba separates state memory into constant recurrent state (GDN-2) and compressed quadratic attention cache (GQA 4:1):
+
+| Context Length (Tokens) | Maba v1.1 GQA Cache | Maba v1.1 GDN-2 State | Maba v1.1 Total Cache | Pure Attention Baseline | Memory Reduction |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **1,024 (1k)** | 2.50 MB | 1.17 MB (Fixed) | **3.67 MB** | 10.50 MB | **-65.0%** |
+| **2,048 (2k)** | 5.00 MB | 1.17 MB (Fixed) | **6.17 MB** | 21.00 MB | **-70.6%** |
+| **4,096 (4k)** | 10.00 MB | 1.17 MB (Fixed) | **11.17 MB** | 42.00 MB | **-73.4%** |
+| **8,192 (8k)** | 20.00 MB | 1.17 MB (Fixed) | **21.17 MB** | 84.00 MB | **-74.8%** |
+| **16,384 (16k)** | 40.00 MB | 1.17 MB (Fixed) | **41.17 MB** | 168.00 MB | **-75.5%** |
+| **32,768 (32k)** | 80.00 MB | 1.17 MB (Fixed) | **81.17 MB** | 336.00 MB | **-75.8%** |
+| **65,536 (64k)** | 160.00 MB | 1.17 MB (Fixed) | **161.17 MB** | 672.00 MB | **-76.0%** |
+| **131,072 (128k)** | 320.00 MB | 1.17 MB (Fixed) | **321.17 MB** | 1,344.00 MB | **-76.1%** |
+
+* Note: GDN-2 recurrent state is strictly O(1) constant: 15 blocks x 10 heads x (64 x 64 state) x 2 bytes = 1.17 MB. It never grows, regardless of sequence length.
+
+---
+
+## 4-Way Macro Architecture Comparison (~101M Parameters)
 
 | Metric | Maba v1.1 | Qwen 3.8 | Qwen 3.8 Flash Next | MiniCPM5 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -103,6 +128,48 @@ Maba resolves this trade-off through a 3:1 macro-interleaved block structure:
 
 ---
 
+## Scaling Laws & Topology Presets (100M to 30B)
+
+The Maba architecture scales systematically from on-device 100M to large-scale 30B parameters. Detailed specifications, derivation equations, and comparative audits against 2026 foundation architectures (Qwen3.5, Muse-Glimmer-30B, Gemma4) are documented in [SCALING.md](SCALING.md).
+
+<p align="center">
+  <img src="https://huggingface.co/AndrewThompson1233/maba-v1-architecture/resolve/main/assets/scaling_comparison.svg" width="900" alt="Maba Scaling Comparison Against 2026 Architectures" />
+</p>
+
+### Scaling Topology Table
+
+| Metric | Maba-100M | Maba-1B | Maba-3B | Maba-7B | Maba-30B |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Total Parameters** | 101,177,984 (101.2M) | 1,004,729,600 (1.00B) | 2,977,156,608 (2.98B) | 7,127,820,544 (7.13B) | 29,039,812,864 (29.04B) |
+| **Core Parameters** | 96,327,040 (95.21%) | 982,508,800 (97.79%) | 2,941,302,784 (98.80%) | 7,071,844,608 (99.21%) | 28,930,813,184 (99.62%) |
+| **Embedding Parameters** | 4,358,144 (4.31%) | 17,498,112 (1.74%) | 26,836,992 (0.90%) | 37,093,376 (0.52%) | 59,572,224 (0.21%) |
+| **Vocab Parameter Tax** | **4.31%** | **1.74%** | **0.90%** | **0.52%** | **0.21%** |
+| **Vocabulary Size (V)** | 32,768 | 64,256 | 64,256 | 64,256 | 64,256 |
+| **Embedding Rank (d_emb)** | 128 | 256 | 384 | 512 | 768 |
+| **Model Dimension (dim)** | 640 | 2048 | 2816 | 4096 | 6656 |
+| **Physical Blocks** | 20 | 20 | 32 | 36 | 52 |
+| **Effective Depth (2-pass)** | **40 layers** | **40 layers** | **64 layers** | **72 layers** | **104 layers** |
+| **Block Ratio (GDN:GQA)** | 3:1 (15 GDN + 5 GQA) | 3:1 (15 GDN + 5 GQA) | 3:1 (24 GDN + 8 GQA) | 3:1 (27 GDN + 9 GQA) | 3:1 (39 GDN + 13 GQA) |
+| **Query Heads (n_heads)** | 10 | 16 | 22 | 32 | 52 |
+| **KV Heads (n_kv_heads)** | 2 | 4 | 4 | 8 | 4 |
+| **Head Dimension (d_head)** | 64 | 128 | 128 | 128 | 128 |
+| **FFN Dimension (d_ffn)** | 1728 | 5504 | 7488 | 11008 | 19968 |
+| **Conv Kernel (k_size)** | 4 | 4 | 4 | 4 | 4 |
+| **Context Length (max_len)** | 4,096 tokens | 8,192 tokens | 16,384 tokens | 32,768 tokens | 131,072 tokens |
+| **Speculative Horizon** | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) | k=2 (Built-in MTP) |
+
+### CLI Parameter Auditing Commands
+Inspect and verify any model scale preset using the built-in CLI:
+```bash
+python3 -m maba.cli params --scale 100M
+python3 -m maba.cli params --scale 1B
+python3 -m maba.cli params --scale 3B
+python3 -m maba.cli params --scale 7B
+python3 -m maba.cli params --scale 30B
+```
+
+---
+
 ## Block Architecture
 
 ### 1. Factorized Token Embeddings
@@ -110,7 +177,7 @@ To avoid vocabulary parameters consuming core computation capacity, Maba factori
 * W_emb: V x d_emb (32,768 x 128)
 * W_proj_in: d_emb x dim (128 x 640)
 * W_proj_out: dim x d_emb (640 x 128)
-This reduces embedding parameters to 4.85M (4.79% of budget), leaving 95.21% of weights dedicated to sequence modeling.
+This reduces embedding parameters to 4.36M (4.31% of budget), leaving 95.21% of weights dedicated to sequence modeling.
 
 ### 2. GDN-2 Recurrence Block (75% of Layers)
 The Gated DeltaNet layer computes an input-dependent recurrent update over state matrix S of size (d_head x d_head):
@@ -152,6 +219,22 @@ mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . -j$(nproc)
 ./test_numerical
+```
+
+---
+
+## Hardware Acceleration & Distributed Training
+
+The architecture includes automated device detection and distributed execution in `maba/hardware.py`:
+* **NVIDIA CUDA**: Multi-GPU training via PyTorch Distributed Data Parallel (DDP) with NCCL all-reduce.
+* **Apple Silicon**: Metal Performance Shaders (MPS) auto-detection and acceleration.
+* **Google Cloud TPU**: PyTorch/XLA auto-detection and execution.
+* **x86_64 AVX2**: Fast CPU fallback with OpenMP multi-threading.
+* **Hybrid Optimizer**: Built-in Muon (matrix parameters via Newton-Schulz orthogonalization) and AdamW (vectors and embeddings).
+
+Check hardware status:
+```bash
+python3 -m maba.cli hardware
 ```
 
 ---
