@@ -118,7 +118,7 @@ Maba separates state memory into constant recurrent state (GDN-2) and compressed
 | Metric | Maba v1.1 | Qwen 3.8 | Qwen 3.8 Flash Next | MiniCPM5 |
 | :--- | :--- | :--- | :--- | :--- |
 | Parameter Budget | ~101M | ~101M | ~101M | ~101M |
-| Core Computation Ratio | **95.21%** | 75.00% | 74.99% | 100.0% |
+| Core Computation Ratio | **95.21%** | 75.00% | 74.99% | 79.20% |
 | Recurrence Share | **75% (GDN-2)** | 75% (GDN) | 75% (GDN) | 0% (Pure Attention) |
 | Quadratic Attention Share | **25% (GQA)** | 25% (GQA) | 25% (QSA Sparse) | 100% (GQA) |
 | Physical Blocks | 20 blocks | 20 blocks | 20 blocks | 28 blocks |
